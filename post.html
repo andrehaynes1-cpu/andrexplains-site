@@ -1,0 +1,674 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<!-- SEO tags injected dynamically by JS -->
+<title id="pageTitle">Loading... — Andre Explains</title>
+<meta name="description" id="metaDesc" content="">
+<meta property="og:title" id="ogTitle" content="">
+<meta property="og:description" id="ogDesc" content="">
+<meta property="og:type" content="article">
+<meta property="og:url" id="ogUrl" content="">
+<meta property="og:site_name" content="Andre Explains">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" id="twTitle" content="">
+<meta name="twitter:description" id="twDesc" content="">
+<link rel="canonical" id="canonical" href="">
+
+<link rel="icon" type="image/x-icon" href="/favicon.ico">
+<link rel="shortcut icon" href="/favicon.ico">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,700;1,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<style>
+  :root{--bg:#080808;--bg2:#0f0f0f;--bg3:#161616;--card:#111;--border:#222;--border2:#2a2a2a;--accent:#e8ff00;--accent2:#00d4ff;--red:#ff3c3c;--orange:#ff8c00;--text:#ffffff;--text2:#cccccc;--text3:#999999;--font-display:'Bebas Neue',sans-serif;--font-body:'DM Sans',sans-serif;--font-mono:'DM Mono',monospace}
+  *{margin:0;padding:0;box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{background:var(--bg);color:var(--text);font-family:var(--font-body);font-size:16px;line-height:1.7;min-height:100vh}
+  body::before{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");pointer-events:none;z-index:1000;opacity:.4}
+
+  /* NAV */
+  nav{position:fixed;top:0;left:0;right:0;z-index:900;display:flex;align-items:center;justify-content:space-between;padding:0 40px;height:64px;background:rgba(8,8,8,.95);backdrop-filter:blur(20px);border-bottom:1px solid var(--border)}
+  .nav-logo{font-family:var(--font-display);font-size:24px;letter-spacing:2px;color:var(--text);text-decoration:none;display:flex;align-items:center;gap:10px}
+  .nav-logo span{color:var(--accent)}
+  .pulse{width:8px;height:8px;background:var(--accent);border-radius:50%;animation:pulse 2s infinite;flex-shrink:0}
+  @keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(.8)}}
+  .nav-links{display:flex;align-items:center;gap:28px;list-style:none}
+  .nav-links a{color:var(--text2);text-decoration:none;font-size:13px;font-weight:500;letter-spacing:1px;text-transform:uppercase;transition:color .2s}
+  .nav-links a:hover{color:var(--accent)}
+  .nav-cta{background:var(--accent)!important;color:#000!important;padding:8px 20px;font-weight:700!important}
+  .nav-cta:hover{background:#fff!important}
+
+  /* BREADCRUMB */
+  .breadcrumb{max-width:1100px;margin:0 auto;padding:96px 40px 0;display:flex;align-items:center;gap:10px;font-family:var(--font-mono);font-size:11px;color:var(--text3)}
+  .breadcrumb a{color:var(--text3);text-decoration:none;transition:color .2s}
+  .breadcrumb a:hover{color:var(--accent)}
+  .breadcrumb span{color:var(--text3)}
+
+  /* ARTICLE LAYOUT */
+  .article-layout{max-width:1100px;margin:0 auto;padding:32px 40px 80px;display:grid;grid-template-columns:1fr 300px;gap:60px;align-items:start}
+
+  /* ARTICLE MAIN */
+  .article-main{}
+
+  /* ARTICLE HEADER */
+  .article-header{margin-bottom:40px}
+  .article-category{font-family:var(--font-mono);font-size:11px;color:var(--accent);text-transform:uppercase;letter-spacing:2px;background:rgba(232,255,0,.07);padding:4px 12px;border:1px solid rgba(232,255,0,.15);display:inline-block;margin-bottom:20px}
+  .article-title{font-family:var(--font-display);font-size:clamp(40px,6vw,72px);letter-spacing:1px;line-height:.95;margin-bottom:24px;color:var(--text)}
+  .article-meta{display:flex;align-items:center;flex-wrap:wrap;gap:12px 24px;padding:16px 0;border-top:1px solid var(--border);border-bottom:1px solid var(--border);font-family:var(--font-mono);font-size:13px;color:#aaaaaa}
+  .article-meta .by{color:var(--text2)}
+
+  /* SEO META BOX */
+  .seo-box{background:var(--bg3);border:1px solid var(--border);padding:16px 20px;margin-bottom:40px;display:flex;gap:12px;align-items:flex-start}
+  .seo-box-icon{font-size:18px;flex-shrink:0;margin-top:2px}
+  .seo-box-label{font-family:var(--font-mono);font-size:9px;color:var(--accent);text-transform:uppercase;letter-spacing:2px;margin-bottom:4px}
+  .seo-box-text{font-size:13px;color:var(--text2);line-height:1.5;font-family:var(--font-mono)}
+
+  /* ARTICLE BODY */
+  .article-body{font-size:18px;color:#d0d0d0;line-height:1.95}
+  .article-body p{margin-bottom:22px}
+  .article-body strong{color:var(--text);font-weight:700}
+  .article-body em{color:var(--accent);font-style:italic}
+
+  /* Author photo */
+  .author-photo{width:100%;aspect-ratio:1;object-fit:cover;object-position:top;display:block;border:2px solid var(--accent)}
+  .author-photo-placeholder{width:100%;aspect-ratio:1;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-size:72px;color:#000}
+  .author-bio-card{background:var(--bg3);border:1px solid var(--border);border-left:3px solid var(--accent);padding:32px;margin:48px 0;display:grid;grid-template-columns:140px 1fr;gap:28px;align-items:start}
+  .author-bio-img{width:140px;flex-shrink:0}
+  .author-bio-img img{width:140px;height:140px;object-fit:cover;object-position:top;display:block;border:2px solid var(--accent)}
+  .author-bio-img .placeholder{width:140px;height:140px;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-size:56px;color:#000}
+  .author-bio-label{font-family:var(--font-mono);font-size:10px;color:var(--accent);text-transform:uppercase;letter-spacing:2px;margin-bottom:6px}
+  .author-bio-name{font-family:var(--font-display);font-size:32px;letter-spacing:1px;color:var(--text);margin-bottom:4px;line-height:1}
+  .author-bio-handle{font-family:var(--font-mono);font-size:12px;color:var(--accent2);margin-bottom:14px}
+  .author-bio-text{font-size:14px;color:var(--text2);line-height:1.7;margin-bottom:18px}
+  .author-bio-btn{display:inline-flex;align-items:center;gap:8px;background:var(--accent);color:#000;font-family:var(--font-display);font-size:16px;letter-spacing:2px;padding:8px 20px;text-decoration:none;transition:background .2s}
+  .author-bio-btn:hover{background:#fff}
+  .sidebar-author-photo{width:100%;aspect-ratio:1;overflow:hidden;margin-bottom:16px;border:2px solid var(--accent)}
+  .sidebar-author-photo img{width:100%;height:100%;object-fit:cover;object-position:top;display:block}
+  .sidebar-author-photo .placeholder{width:100%;padding-top:100%;background:linear-gradient(135deg,var(--accent),var(--accent2));position:relative}
+  .sidebar-author-photo .placeholder span{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-size:64px;color:#000}
+  @media(max-width:640px){.author-bio-card{grid-template-columns:1fr}.author-bio-img{width:100px}.author-bio-img img,.author-bio-img .placeholder{width:100px;height:100px}}
+
+  /* Post images */
+  .article-body .post-image{margin:0 0 36px;border:1px solid var(--border);overflow:hidden;background:var(--bg3)}
+  .article-body .post-image-hero{margin-bottom:48px;border-left:3px solid var(--accent)}
+  .article-body .post-image-mid{margin:48px 0;border-left:3px solid var(--accent2)}
+  .article-body .svg-wrapper{width:100%;overflow:hidden;line-height:0;display:block}
+  .article-body .svg-wrapper svg{width:100%;height:auto;display:block;max-height:480px}
+  .article-body figcaption{font-family:var(--font-mono);font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:1px;padding:10px 16px;border-top:1px solid var(--border);background:var(--bg2)}
+
+  .article-body h2{font-family:var(--font-display);font-size:clamp(28px,3vw,38px);color:var(--text);margin:48px 0 18px;letter-spacing:1px;line-height:1;padding-top:48px;border-top:1px solid var(--border)}
+  .article-body h2:first-of-type{border-top:none;padding-top:0}
+
+  /* KEY TAKEAWAYS */
+  .article-body .key-takeaways{background:var(--bg3);border-left:3px solid var(--accent);padding:24px 28px;margin:36px 0;position:relative}
+  .article-body .key-takeaways::before{content:'KEY TAKEAWAYS';position:absolute;top:-1px;left:28px;background:var(--accent);color:#000;font-family:var(--font-mono);font-size:9px;font-weight:700;letter-spacing:2px;padding:3px 10px;transform:translateY(-100%)}
+  .article-body .key-takeaways h3{display:none}
+  .article-body .key-takeaways ul{list-style:none;display:flex;flex-direction:column;gap:12px}
+  .article-body .key-takeaways li{font-size:16px;color:var(--text);display:flex;align-items:flex-start;gap:12px;line-height:1.5}
+  .article-body .key-takeaways li::before{content:'→';color:var(--accent);flex-shrink:0;font-family:var(--font-mono);font-weight:700;margin-top:1px}
+
+  /* IN-POST PROMO */
+  .in-post-promo{background:linear-gradient(135deg,#0d0d00,#111100);border:1px solid rgba(232,255,0,.2);padding:24px;margin:40px 0}
+  .in-post-promo-label{font-family:var(--font-mono);font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:2px;margin-bottom:16px}
+  .mini-promos{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+  .mini-promo{padding:14px;border:1px solid;text-decoration:none;display:flex;flex-direction:column;gap:6px;transition:all .2s}
+  .mini-promo.free{border-color:rgba(0,255,136,.25);background:rgba(0,255,136,.03)}
+  .mini-promo.paid{border-color:rgba(255,140,0,.25);background:rgba(255,140,0,.03)}
+  .mini-promo.yt{border-color:rgba(255,60,60,.25);background:rgba(255,60,60,.03)}
+  .mini-promo:hover{transform:translateY(-2px)}
+  .mini-promo.free:hover{border-color:#00ff88}
+  .mini-promo.paid:hover{border-color:var(--orange)}
+  .mini-promo.yt:hover{border-color:#ff4444}
+  .mini-badge{font-family:var(--font-mono);font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase}
+  .mini-promo.free .mini-badge{color:#00ff88}
+  .mini-promo.paid .mini-badge{color:var(--orange)}
+  .mini-promo.yt .mini-badge{color:#ff4444}
+  .mini-title{font-family:var(--font-display);font-size:15px;letter-spacing:1px;color:var(--text);line-height:1}
+  .mini-cta{font-family:var(--font-mono);font-size:10px;letter-spacing:1px;text-transform:uppercase}
+  .mini-promo.free .mini-cta{color:#00ff88}
+  .mini-promo.paid .mini-cta{color:var(--orange)}
+  .mini-promo.yt .mini-cta{color:#ff4444}
+
+  /* YOUTUBE CTA */
+  .yt-cta{background:linear-gradient(135deg,rgba(232,255,0,.06),rgba(0,212,255,.04));border:1px solid rgba(232,255,0,.2);padding:36px;margin-top:48px;text-align:center}
+  .yt-cta h3{font-family:var(--font-display);font-size:32px;letter-spacing:1px;margin-bottom:12px;color:var(--text)}
+  .yt-cta p{font-size:15px;color:var(--text2);margin-bottom:24px;max-width:480px;margin-left:auto;margin-right:auto}
+  .yt-btn{display:inline-flex;align-items:center;gap:12px;background:var(--accent);color:#000;padding:14px 32px;font-family:var(--font-display);font-size:22px;letter-spacing:2px;text-decoration:none;transition:all .2s;border:none;cursor:pointer}
+  .yt-btn:hover{background:#fff;transform:translateY(-2px)}
+
+  /* BACK LINK */
+  .back-link{display:inline-flex;align-items:center;gap:8px;color:var(--text3);text-decoration:none;font-family:var(--font-mono);font-size:12px;letter-spacing:1px;text-transform:uppercase;margin-top:48px;transition:color .2s;padding:10px 0}
+  .back-link:hover{color:var(--accent)}
+
+  /* RELATED POSTS */
+  .related-section{margin-top:60px;padding-top:40px;border-top:1px solid var(--border)}
+  .related-label{font-family:var(--font-mono);font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:2px;margin-bottom:20px}
+  .related-title{font-family:var(--font-display);font-size:28px;letter-spacing:1px;margin-bottom:24px}
+  .related-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .related-card{background:var(--card);border:1px solid var(--border);padding:20px;text-decoration:none;transition:all .2s;display:block}
+  .related-card:hover{border-color:var(--border2);transform:translateY(-2px)}
+  .related-card-cat{font-family:var(--font-mono);font-size:9px;color:var(--accent);text-transform:uppercase;letter-spacing:2px;margin-bottom:8px}
+  .related-card-title{font-size:15px;font-weight:700;color:var(--text);line-height:1.3;transition:color .2s}
+  .related-card:hover .related-card-title{color:var(--accent)}
+  .related-card-time{font-family:var(--font-mono);font-size:10px;color:var(--text3);margin-top:8px}
+
+  /* SIDEBAR */
+  .article-sidebar{position:sticky;top:88px}
+  .sidebar-card{background:var(--card);border:1px solid var(--border);padding:24px;margin-bottom:16px}
+  .sidebar-title{font-family:var(--font-display);font-size:20px;letter-spacing:1px;margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid var(--border)}
+
+  .sidebar-promo{background:var(--card);border:2px solid;margin-bottom:16px;text-decoration:none;display:block;transition:all .25s;position:relative;overflow:hidden}
+  .sidebar-promo.free-promo{border-color:rgba(0,255,136,.35)}
+  .sidebar-promo.paid-promo{border-color:rgba(255,140,0,.35)}
+  .sidebar-promo.yt-promo{border-color:rgba(255,60,60,.35)}
+  .sidebar-promo:hover{transform:translateY(-2px)}
+  .sidebar-promo.free-promo:hover{background:#0a1a0a;border-color:#00ff88}
+  .sidebar-promo.paid-promo:hover{background:#1a0e00;border-color:var(--orange)}
+  .sidebar-promo.yt-promo:hover{background:#1a0000;border-color:#ff4444}
+  .promo-inner{padding:20px 22px}
+  .promo-badge-top{display:inline-flex;align-items:center;gap:6px;font-family:var(--font-mono);font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;padding:4px 10px;margin-bottom:12px}
+  .free-promo .promo-badge-top{background:rgba(0,255,136,.1);color:#00ff88;border:1px solid rgba(0,255,136,.25)}
+  .paid-promo .promo-badge-top{background:rgba(255,140,0,.1);color:var(--orange);border:1px solid rgba(255,140,0,.25)}
+  .yt-promo .promo-badge-top{background:rgba(255,60,60,.1);color:#ff4444;border:1px solid rgba(255,60,60,.25)}
+  .promo-title{font-family:var(--font-display);font-size:20px;letter-spacing:1px;color:var(--text);margin-bottom:8px;line-height:1.1}
+  .promo-desc{font-size:13px;color:var(--text2);line-height:1.5;margin-bottom:14px}
+  .promo-cta-btn{display:block;text-align:center;padding:10px 16px;font-family:var(--font-display);font-size:17px;letter-spacing:2px;width:100%;text-decoration:none;transition:background .2s}
+  .free-promo .promo-cta-btn{background:#00ff88;color:#000}
+  .free-promo .promo-cta-btn:hover{background:#fff}
+  .paid-promo .promo-cta-btn{background:var(--orange);color:#000}
+  .paid-promo .promo-cta-btn:hover{background:#fff}
+  .yt-promo .promo-cta-btn{background:#ff4444;color:#fff}
+  .yt-promo .promo-cta-btn:hover{background:#fff;color:#000}
+
+  .toc-list{list-style:none;display:flex;flex-direction:column;gap:8px}
+  .toc-list li a{font-size:13px;color:var(--text2);text-decoration:none;display:flex;align-items:center;gap:8px;transition:color .2s;line-height:1.4}
+  .toc-list li a::before{content:'#';font-family:var(--font-mono);font-size:10px;color:var(--text3);flex-shrink:0}
+  .toc-list li a:hover{color:var(--accent)}
+
+  /* LOADING / ERROR */
+  .loading-state{text-align:center;padding:120px 40px;color:var(--text3)}
+  .loading-state h2{font-family:var(--font-display);font-size:48px;letter-spacing:2px;margin-bottom:12px;color:var(--text3)}
+  .loading-state p{font-family:var(--font-mono);font-size:13px}
+  .loading-spinner-lg{width:40px;height:40px;border:3px solid var(--border2);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 24px}
+  @keyframes spin{to{transform:rotate(360deg)}}
+
+  footer{border-top:1px solid var(--border);padding:40px;display:flex;align-items:center;justify-content:space-between;max-width:1100px;margin:0 auto}
+  .footer-brand{font-family:var(--font-display);font-size:20px;letter-spacing:2px;color:var(--text3)}
+  .footer-brand em{color:var(--accent);font-style:normal}
+  .footer-note{font-family:var(--font-mono);font-size:11px;color:var(--text3)}
+
+  ::-webkit-scrollbar{width:4px} ::-webkit-scrollbar-track{background:var(--bg)} ::-webkit-scrollbar-thumb{background:var(--border2)} ::-webkit-scrollbar-thumb:hover{background:var(--accent)}
+
+  @media(max-width:900px){
+    nav{padding:0 20px}
+    .article-layout{grid-template-columns:1fr;gap:40px;padding:24px 20px 60px}
+    .article-sidebar{position:static}
+    .breadcrumb{padding:88px 20px 0}
+    .mini-promos{grid-template-columns:1fr}
+    .related-grid{grid-template-columns:1fr}
+    footer{flex-direction:column;gap:12px;text-align:center;padding:32px 20px}
+  }
+
+  @media(max-width:768px){
+    .article-title{font-size:clamp(32px,8vw,52px) !important;line-height:1 !important}
+    .article-meta{flex-wrap:wrap;gap:8px 16px}
+    .article-body{font-size:17px !important;line-height:1.85 !important}
+    .article-body h2{font-size:clamp(22px,5vw,30px) !important;letter-spacing:.5px !important}
+    .breadcrumb{padding:80px 16px 0 !important}
+    .author-bio-card{grid-template-columns:1fr !important}
+  }
+  @media(max-width:480px){
+    .nav-links{display:none}
+    .article-body{font-size:16px !important}
+  }
+
+  /* ── POST PAGE MOBILE READABILITY ── */
+  @media(max-width:768px){
+    body{font-size:16px;line-height:1.8}
+    nav{padding:0 16px}
+    .nav-links{display:none}
+    .breadcrumb{padding:80px 16px 0;font-size:11px}
+    .article-layout{grid-template-columns:1fr !important;padding:16px !important;gap:0}
+    .article-sidebar{display:none}
+    .article-main{padding:0 !important;max-width:100%}
+    .article-header{padding:24px 0 20px}
+    .article-category{font-size:10px;letter-spacing:2px}
+    .article-title{font-size:clamp(28px,7vw,48px) !important;line-height:1.05 !important;letter-spacing:0 !important;margin-bottom:18px}
+    .article-meta{flex-wrap:wrap;gap:8px 16px;font-size:11px}
+    .seo-box{padding:14px 16px;margin-bottom:24px}
+    .seo-box-text{font-size:13px;line-height:1.6}
+    .article-body{font-size:18px !important;line-height:1.9 !important}
+    .article-body p{margin-bottom:20px}
+    .article-body h2{font-size:clamp(22px,5vw,30px) !important;padding-top:28px !important;margin:28px 0 12px !important;letter-spacing:0 !important;line-height:1.1 !important}
+    .article-body h3{font-size:19px !important;line-height:1.2}
+    .key-takeaways{padding:16px !important;margin:24px 0 !important}
+    .key-takeaways li{font-size:16px !important;line-height:1.7 !important}
+    .faq-item{padding:14px 0}
+    .faq-question{font-size:17px !important}
+    .faq-answer{font-size:16px !important;line-height:1.8 !important}
+    .yt-cta{padding:28px 16px !important;margin:32px -16px}
+    .yt-cta h3{font-size:26px !important}
+    .yt-cta p{font-size:14px !important}
+    .yt-btn{font-size:18px !important;padding:12px 24px !important}
+    .author-bio-card{grid-template-columns:1fr !important;padding:20px 16px !important;margin:32px 0 !important}
+    .author-bio-img img,.author-bio-img .placeholder{width:80px !important;height:80px !important}
+    .author-bio-name{font-size:26px !important}
+    .author-bio-text{font-size:14px !important}
+    .related-grid{grid-template-columns:1fr !important}
+    .back-link{font-size:12px;margin-top:32px}
+    .mini-promos{flex-direction:column}
+    .mini-promo{padding:10px 12px}
+    .in-post-promo{padding:16px !important;margin:24px 0 !important}
+  }
+  @media(max-width:480px){
+    .article-title{font-size:clamp(24px,8vw,38px) !important}
+    .article-body{font-size:17px !important;line-height:1.9 !important}
+    .article-body p{margin-bottom:20px}
+    .article-body h2{font-size:clamp(20px,5vw,26px) !important}
+    .article-body h3{font-size:17px !important}
+    .key-takeaways li{font-size:16px !important;line-height:1.7 !important}
+    .faq-question{font-size:17px !important}
+    .faq-answer{font-size:16px !important;line-height:1.8 !important}
+    .seo-box-text{font-size:14px !important}
+    .author-bio-text{font-size:15px !important}
+    .yt-cta p{font-size:15px !important}
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="/" class="nav-logo"><div class="pulse"></div>ANDRE <span>EXPLAINS</span></a>
+  <ul class="nav-links">
+    <li><a href="/#posts">Articles</a></li>
+    <li><a href="/#about">About</a></li>
+    <li><a href="/#products">Products</a></li>
+    <li><a href="https://youtube.com/@andrexplains" target="_blank" class="nav-cta">YOUTUBE ↗</a></li>
+  </ul>
+</nav>
+
+<div class="breadcrumb">
+  <a href="/">Home</a>
+  <span>›</span>
+  <a href="/#posts">Articles</a>
+  <span>›</span>
+  <span id="breadcrumbTitle" style="color:var(--text2)">Loading...</span>
+</div>
+
+<!-- MAIN CONTENT — rendered by JS -->
+<div id="pageContent">
+  <div class="loading-state">
+    <div class="loading-spinner-lg"></div>
+    <h2>LOADING</h2>
+    <p>Fetching article...</p>
+  </div>
+</div>
+
+<footer>
+  <div class="footer-brand">ANDRE <em>EXPLAINS</em></div>
+  <div class="footer-note">AndreExplains.com — All content original. All rights reserved.</div>
+</footer>
+
+<script>
+const SUPABASE_URL = 'https://xxjeekwjatqwousgfrcr.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_xrZPvhOJmmcbSlktvIXY2g_OV2WwDDS';
+const { createClient } = supabase;
+const db = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+// Get slug from URL: /posts/my-post-slug
+const slug = window.location.pathname.replace('/posts/', '').replace(/\/$/, '');
+
+// Load product settings - start with localStorage, update from Supabase
+let PROD = JSON.parse(localStorage.getItem('ae_products') || '{}');
+let FREE_TITLE = PROD.free?.title || 'New Creator Checklist';
+let FREE_DESC  = PROD.free?.desc  || 'The exact setup checklist I wish I had when I started.';
+let FREE_URL   = PROD.free?.url   || '#';
+let FREE_CTA   = PROD.free?.cta   || 'GET IT FREE →';
+let PAID_TITLE = PROD.paid?.title || 'Creator Starter Kit';
+let PAID_DESC  = PROD.paid?.desc  || 'The complete system to grow your channel from 0.';
+let PAID_URL   = PROD.paid?.url   || '#';
+let PAID_CTA   = PROD.paid?.cta   || 'SEE DETAILS →';
+let YT_URL     = PROD.yt?.url     || 'https://youtube.com/@andrexplains';
+
+// Ad settings
+let AD_CODE  = PROD.ad?.code  || '';
+let AD_TITLE = PROD.ad?.title || '';
+let AD_DESC  = PROD.ad?.desc  || '';
+let AD_URL   = PROD.ad?.url   || '#';
+let AD_BTN   = PROD.ad?.btn   || 'LEARN MORE →';
+let AD_HTML = AD_CODE ? AD_CODE : (AD_TITLE || AD_DESC) ? `
+  <a href="${AD_URL}" target="_blank" rel="noopener" style="display:block;background:var(--card);border:2px solid var(--accent);padding:20px;text-decoration:none;transition:all .25s;margin-bottom:16px">
+    <div style="font-family:var(--font-display);font-size:20px;letter-spacing:1px;color:var(--accent);margin-bottom:8px;line-height:1.1">${AD_TITLE}</div>
+    <div style="font-size:14px;color:#ccc;line-height:1.5;margin-bottom:14px">${AD_DESC}</div>
+    <div style="display:inline-block;background:var(--accent);color:#000;font-family:var(--font-display);font-size:14px;letter-spacing:2px;padding:8px 16px">${AD_BTN}</div>
+  </a>` : '';
+
+// Load products from Supabase for cross-device sync
+async function loadProductsFromSupabase(){
+  try{
+    const{data}=await db.from('settings').select('value').eq('key','products').single();
+    if(data?.value){
+      PROD=JSON.parse(data.value);
+      localStorage.setItem('ae_products',JSON.stringify(PROD));
+      // Update variables
+      FREE_TITLE = PROD.free?.title || 'New Creator Checklist';
+      FREE_DESC  = PROD.free?.desc  || 'The exact setup checklist I wish I had when I started.';
+      FREE_URL   = PROD.free?.url   || '#';
+      FREE_CTA   = PROD.free?.cta   || 'GET IT FREE →';
+      PAID_TITLE = PROD.paid?.title || 'Creator Starter Kit';
+      PAID_DESC  = PROD.paid?.desc  || 'The complete system to grow your channel from 0.';
+      PAID_URL   = PROD.paid?.url   || '#';
+      PAID_CTA   = PROD.paid?.cta   || 'SEE DETAILS →';
+      YT_URL     = PROD.yt?.url     || 'https://youtube.com/@andrexplains';
+      AD_CODE  = PROD.ad?.code  || '';
+      AD_TITLE = PROD.ad?.title || '';
+      AD_DESC  = PROD.ad?.desc  || '';
+      AD_URL   = PROD.ad?.url   || '#';
+      AD_BTN   = PROD.ad?.btn   || 'LEARN MORE →';
+      AD_HTML = AD_CODE ? AD_CODE : (AD_TITLE || AD_DESC) ? `
+        <a href="${AD_URL}" target="_blank" rel="noopener" style="display:block;background:var(--card);border:2px solid var(--accent);padding:20px;text-decoration:none;transition:all .25s;margin-bottom:16px">
+          <div style="font-family:var(--font-display);font-size:20px;letter-spacing:1px;color:var(--accent);margin-bottom:8px;line-height:1.1">${AD_TITLE}</div>
+          <div style="font-size:14px;color:#ccc;line-height:1.5;margin-bottom:14px">${AD_DESC}</div>
+          <div style="display:inline-block;background:var(--accent);color:#000;font-family:var(--font-display);font-size:14px;letter-spacing:2px;padding:8px 16px">${AD_BTN}</div>
+        </a>` : '';
+    }
+  }catch(e){}
+}
+
+// Author photo — load from Supabase (all devices) with localStorage fallback
+let AUTHOR_PHOTO = localStorage.getItem('ae_author_photo') || '';
+let AUTHOR_PHOTO_HTML = AUTHOR_PHOTO
+  ? `<img src="${AUTHOR_PHOTO}" alt="Andre — AndreExplains" loading="lazy">`
+  : `<div class="placeholder"><span>A</span></div>`;
+
+async function loadAuthorPhoto() {
+  try {
+    const { data } = await db.from('settings').select('value').eq('key', 'author_photo').single();
+    if (data?.value) {
+      AUTHOR_PHOTO = data.value;
+      localStorage.setItem('ae_author_photo', AUTHOR_PHOTO);
+      const html = `<img src="${AUTHOR_PHOTO}" alt="Andre — AndreExplains" loading="lazy">`;
+      document.querySelectorAll('.sidebar-author-photo, .author-photo-placeholder').forEach(el => { el.innerHTML = html; });
+    }
+  } catch(e) {}
+}
+
+async function loadPost() {
+  if (!slug) { showError('No post found.'); return; }
+
+  try {
+    // Fetch this post
+    const { data: post, error } = await db
+      .from('posts')
+      .select('*')
+      .eq('slug', slug)
+      .single();
+
+    if (error || !post) { showError('Post not found. It may have been removed.'); return; }
+
+    // Fetch related posts (same category, different slug)
+    const { data: related } = await db
+      .from('posts')
+      .select('seo_title, slug, category, read_time')
+      .eq('category', post.category)
+      .neq('slug', slug)
+      .limit(4);
+
+    // Inject SEO meta tags
+    const fullUrl = `https://andreexplains.com/posts/${post.slug}`;
+    document.getElementById('pageTitle').textContent = `${post.seo_title} — Andre Explains`;
+    document.getElementById('metaDesc').content = post.meta_description;
+    document.getElementById('ogTitle').content = post.seo_title;
+    document.getElementById('ogDesc').content = post.meta_description;
+    document.getElementById('ogUrl').content = fullUrl;
+    document.getElementById('twTitle').content = post.seo_title;
+    document.getElementById('twDesc').content = post.meta_description;
+    document.getElementById('canonical').href = fullUrl;
+    document.getElementById('breadcrumbTitle').textContent = post.seo_title;
+
+    // Build table of contents from h2 tags
+    const tempDiv = document.createElement('div');
+    tempDiv.innerHTML = post.html_content;
+    const headings = [...tempDiv.querySelectorAll('h2')];
+    const tocHTML = headings.length ? `
+      <div class="sidebar-card">
+        <div class="sidebar-title">IN THIS POST</div>
+        <ul class="toc-list">
+          ${headings.map((h, i) => {
+            const id = `section-${i}`;
+            h.id = id;
+            return `<li><a href="#${id}">${h.textContent}</a></li>`;
+          }).join('')}
+        </ul>
+      </div>` : '';
+
+    // Update headings with IDs in actual content
+    const bodyHTML = tempDiv.innerHTML;
+
+    // In-post promo block
+    const inPostPromo = `
+      <div class="in-post-promo">
+        <div class="in-post-promo-label">From Andre Explains</div>
+        <div class="mini-promos">
+          <a href="${FREE_URL}" class="mini-promo free">
+            <div class="mini-badge">⬇ FREE</div>
+            <div class="mini-title">${FREE_TITLE}</div>
+            <div class="mini-cta">${FREE_CTA}</div>
+          </a>
+          <a href="${PAID_URL}" class="mini-promo paid">
+            <div class="mini-badge">🚀 PREMIUM</div>
+            <div class="mini-title">${PAID_TITLE}</div>
+            <div class="mini-cta">${PAID_CTA}</div>
+          </a>
+          <a href="${YT_URL}" target="_blank" class="mini-promo yt">
+            <div class="mini-badge">▶ YOUTUBE</div>
+            <div class="mini-title">Watch On YouTube</div>
+            <div class="mini-cta">SUBSCRIBE →</div>
+          </a>
+        </div>
+      </div>`;
+
+    // Related posts
+    const relatedHTML = related?.length ? `
+      <div class="related-section">
+        <div class="related-label">Keep Reading</div>
+        <div class="related-title">MORE ARTICLES</div>
+        <div class="related-grid">
+          ${related.map(r => `
+            <a href="/posts/${r.slug}" class="related-card">
+              <div class="related-card-cat">${r.category}</div>
+              <div class="related-card-title">${r.seo_title}</div>
+              <div class="related-card-time">${r.read_time} min read</div>
+            </a>`).join('')}
+        </div>
+      </div>` : '';
+
+    // Fetch ALL other posts for in-content internal links
+    const { data: allPosts } = await db
+      .from('posts')
+      .select('seo_title, slug, category, meta_description')
+      .neq('slug', slug)
+      .order('created_at', { ascending: false })
+      .limit(10);
+
+    // Build in-content link block — inserted after the 2nd and 4th h2 in the article
+    function buildInContentLinks(posts, currentCategory) {
+      if (!posts || posts.length < 1) return '';
+      // Pick up to 2 posts, prefer same category
+      const sameCategory = posts.filter(p => p.category === currentCategory);
+      const picks = sameCategory.length >= 2 ? sameCategory.slice(0, 2) : posts.slice(0, 2);
+      return `<div style="background:rgba(232,255,0,0.04);border-left:3px solid var(--accent);padding:16px 20px;margin:28px 0;">
+        <div style="font-family:var(--font-mono);font-size:10px;color:var(--accent);letter-spacing:2px;text-transform:uppercase;margin-bottom:8px">Related Reading</div>
+        ${picks.map(p => `<div style="margin-bottom:6px"><a href="/posts/${p.slug}" style="color:var(--text);text-decoration:none;font-weight:600;font-size:15px;transition:color .2s" onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='var(--text)'">${p.seo_title} →</a></div>`).join('')}
+      </div>`;
+    }
+
+    // Inject internal links into article body after 2nd and 4th h2
+    let processedBody = bodyHTML;
+    if (allPosts && allPosts.length >= 2) {
+      const h2Regex = /<\/h2>/gi;
+      let h2Count = 0;
+      processedBody = bodyHTML.replace(h2Regex, (match) => {
+        h2Count++;
+        if (h2Count === 2) {
+          return match + buildInContentLinks(allPosts.slice(0, 2), post.category);
+        } else if (h2Count === 4 && allPosts.length >= 4) {
+          return match + buildInContentLinks(allPosts.slice(2, 4), post.category);
+        }
+        return match;
+      });
+    }
+
+    // JSON-LD structured data for Google (rich snippets)
+    const jsonLD = `
+      <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "BlogPosting",
+        "headline": "${post.seo_title.replace(/"/g, '\\"')}",
+        "description": "${post.meta_description.replace(/"/g, '\\"')}",
+        "url": "${fullUrl}",
+        "datePublished": "${post.created_at}",
+        "author": {
+          "@type": "Person",
+          "name": "Andre",
+          "url": "https://andreexplains.com"
+        },
+        "publisher": {
+          "@type": "Organization",
+          "name": "Andre Explains",
+          "url": "https://andreexplains.com"
+        }
+      }
+      <\/script>`;
+
+    // Render full page
+    document.getElementById('pageContent').innerHTML = `
+      ${jsonLD}
+      <div class="article-layout">
+        <article class="article-main">
+          <header class="article-header">
+            <div class="article-category">${post.category}</div>
+            <h1 class="article-title">${post.seo_title}</h1>
+            <div class="article-meta">
+              <span class="by">By Andre</span>
+              <span>${post.date_label}</span>
+              <span>${post.read_time} min read</span>
+              <span>AndreExplains.com</span>
+            </div>
+          </header>
+
+          <div class="seo-box">
+            <span class="seo-box-icon">🔍</span>
+            <div>
+              <div class="seo-box-label">What This Article Covers</div>
+              <div class="seo-box-text">${post.meta_description}</div>
+            </div>
+          </div>
+
+          <div class="article-body">
+            ${processedBody}
+            ${inPostPromo}
+          </div>
+
+          <div class="yt-cta">
+            <h3>WATCH THE VIDEO</h3>
+            <p>This article is based on a real video. Watch the full breakdown on YouTube with deeper tips and real examples.</p>
+            <a href="${YT_URL}" target="_blank" class="yt-btn">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.6 12 3.6 12 3.6s-7.5 0-9.4.5A3 3 0 0 0 .5 6.2 31.2 31.2 0 0 0 0 12a31.2 31.2 0 0 0 .5 5.8A3 3 0 0 0 2.6 20c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 0 0 2.1-2.1A31.2 31.2 0 0 0 24 12a31.2 31.2 0 0 0-.5-5.8zM9.7 15.5V8.5l6.3 3.5-6.3 3.5z"/></svg>
+              WATCH ON YOUTUBE
+            </a>
+          </div>
+
+          <!-- AUTHOR BIO — shown at the end of every post -->
+          <div class="author-bio-card">
+            <div class="author-bio-img">
+              ${AUTHOR_PHOTO_HTML}
+            </div>
+            <div>
+              <div class="author-bio-label">Written By</div>
+              <div class="author-bio-name">ANDRE</div>
+              <div class="author-bio-handle">@AndreExplains</div>
+              <p class="author-bio-text">Documenting the YouTube journey from 0 subscribers. No fake guru energy — just honest breakdowns of what actually works, shared as I figure it out in real time.</p>
+              <a href="${YT_URL}" target="_blank" class="author-bio-btn">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.6 12 3.6 12 3.6s-7.5 0-9.4.5A3 3 0 0 0 .5 6.2 31.2 31.2 0 0 0 0 12a31.2 31.2 0 0 0 .5 5.8A3 3 0 0 0 2.6 20c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 0 0 2.1-2.1A31.2 31.2 0 0 0 24 12a31.2 31.2 0 0 0-.5-5.8zM9.7 15.5V8.5l6.3 3.5-6.3 3.5z"/></svg>
+                SUBSCRIBE ON YOUTUBE
+              </a>
+            </div>
+          </div>
+
+          <a href="/" class="back-link">← Back to All Articles</a>
+
+          ${relatedHTML}
+        </article>
+
+        <aside class="article-sidebar">
+          ${tocHTML}
+
+          ${AD_HTML}
+
+          <a href="${FREE_URL}" class="sidebar-promo free-promo">
+            <div class="promo-inner">
+              <div class="promo-badge-top">⬇ FREE DOWNLOAD</div>
+              <div class="promo-title">${FREE_TITLE}</div>
+              <div class="promo-desc">${FREE_DESC}</div>
+              <div class="promo-cta-btn">${FREE_CTA}</div>
+            </div>
+          </a>
+
+          <a href="${PAID_URL}" class="sidebar-promo paid-promo">
+            <div class="promo-inner">
+              <div class="promo-badge-top">🚀 PREMIUM</div>
+              <div class="promo-title">${PAID_TITLE}</div>
+              <div class="promo-desc">${PAID_DESC}</div>
+              <div class="promo-cta-btn">${PAID_CTA}</div>
+            </div>
+          </a>
+
+          <a href="${YT_URL}" target="_blank" class="sidebar-promo yt-promo">
+            <div class="promo-inner">
+              <div class="promo-badge-top">▶ YOUTUBE</div>
+              <div class="promo-title">Andre Explains</div>
+              <div class="promo-desc">Watch the full video breakdowns on YouTube. New content every week.</div>
+              <div class="promo-cta-btn">SUBSCRIBE NOW →</div>
+            </div>
+          </a>
+
+          <div class="sidebar-card">
+            <div class="sidebar-title">ABOUT ANDRE</div>
+            <div class="sidebar-author-photo">
+              ${AUTHOR_PHOTO_HTML}
+            </div>
+            <div style="font-family:var(--font-display);font-size:22px;letter-spacing:1px;margin-bottom:2px">ANDRE</div>
+            <div style="font-family:var(--font-mono);font-size:11px;color:var(--accent);margin-bottom:12px">@AndreExplains</div>
+            <p style="font-size:13px;color:var(--text2);line-height:1.6;margin-bottom:16px">Documenting the YouTube journey from 0 subscribers. No fake guru energy. Just what actually works.</p>
+            <a href="${YT_URL}" target="_blank" style="display:block;text-align:center;background:var(--accent);color:#000;font-family:var(--font-display);font-size:16px;letter-spacing:2px;padding:8px;text-decoration:none;transition:background .2s" onmouseover="this.style.background='#fff'" onmouseout="this.style.background='var(--accent)'">SUBSCRIBE ↗</a>
+          </div>
+        </aside>
+      </div>`;
+
+  } catch(e) {
+    showError('Something went wrong loading this post.');
+    console.error(e);
+  }
+}
+
+function showError(msg) {
+  document.getElementById('pageContent').innerHTML = `
+    <div class="loading-state">
+      <h2>404</h2>
+      <p>${msg}</p>
+      <a href="/" style="display:inline-block;margin-top:24px;background:var(--accent);color:#000;padding:10px 24px;font-family:var(--font-display);font-size:18px;letter-spacing:2px;text-decoration:none">← GO HOME</a>
+    </div>`;
+  document.getElementById('breadcrumbTitle').textContent = 'Not Found';
+}
+
+loadProductsFromSupabase().then(() => loadPost());
+loadAuthorPhoto();
+</script>
+</body>
+</html>

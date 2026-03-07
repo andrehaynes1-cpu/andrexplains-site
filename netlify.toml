@@ -1,0 +1,40 @@
+[[redirects]]
+  from = "/posts/:slug"
+  to = "/post.html"
+  status = 200
+
+[[redirects]]
+  from = "/sitemap.xml"
+  to = "/.netlify/functions/sitemap"
+  status = 200
+
+[build]
+  functions = "netlify/functions"
+
+[functions]
+  node_bundler = "esbuild"
+  # Extend timeout to 26 seconds (max on free plan)
+  included_files = ["netlify/functions/**"]
+
+[functions."generate-post"]
+  timeout = 26
+
+[functions."sitemap"]
+  timeout = 10
+
+# Security headers on every page
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "DENY"
+    X-Content-Type-Options = "nosniff"
+    X-XSS-Protection = "1; mode=block"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    Permissions-Policy = "camera=(), microphone=(), geolocation=()"
+
+# Admin — never cached
+[[headers]]
+  for = "/admin.html"
+  [headers.values]
+    Cache-Control = "no-store, no-cache, must-revalidate"
+    Pragma = "no-cache"
