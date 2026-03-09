@@ -1,63 +1,40 @@
-const { createClient } = require('@supabase/supabase-js');
-
+// v3 - updated 2026-03-08
 exports.handler = async () => {
-  const db = createClient(
-    process.env.SUPABASE_URL || 'https://xxjeekwjatqwousgfrcr.supabase.co',
-    process.env.SUPABASE_KEY || 'sb_publishable_xrZPvhOJmmcbSlktvIXY2g_OV2WwDDS'
-  );
+  const SUPABASE_URL = process.env.SUPABASE_URL || 'https://xxjeekwjatqwousgfrcr.supabase.co';
+  const SUPABASE_KEY = process.env.SUPABASE_KEY || 'sb_publishable_xrZPvhOJmmcbSlktvIXY2g_OV2WwDDS';
+  const now = new Date().toISOString().split('T')[0];
 
+  // Fetch posts
+  let posts = [];
   try {
-    const { data: posts, error } = await db
-      .from('posts')
-      .select('slug, created_at')
-      .order('created_at', { ascending: false });
+    const res = await fetch(
+      SUPABASE_URL + '/rest/v1/posts?select=slug,created_at&order=created_at.desc',
+      { headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY } }
+    );
+    if (res.ok) { posts = await res.json(); }
+  } catch (e) { /* continue with empty posts */ }
 
-    if (error) throw error;
+  // Determine homepage lastmod
+  const homeDate = (posts.length > 0 && posts[0].created_at)
+    ? posts[0].created_at.split('T')[0]
+    : now;
 
-    // Homepage lastmod = most recent post date or today
-    const now = new Date().toISOString().split('T')[0];
-    const homepageLastmod = posts?.length
-      ? posts[0].created_at.split('T')[0]
-      : now;
+  // Build complete XML in one shot
+  const urls = [
+    '  <url>\n    <loc>https://andreexplains.com</loc>\n    <lastmod>' + homeDate + '</lastmod>\n    <priority>1.0</priority>\n    <changefreq>daily</changefreq>\n  </url>'
+  ];
 
-    let xml = `<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <url>
-    <loc>https://andreexplains.com</loc>
-    <lastmod>${homepageLastmod}</lastmod>
-    <priority>1.0</priority>
-    <changefreq>daily</changefreq>
-  </url>`;
-
-    if (posts?.length) {
-      for (const p of posts) {
-        const date = p.created_at ? p.created_at.split('T')[0] : now;
-        xml += `
-  <url>
-    <loc>https://andreexplains.com/posts/${p.slug}</loc>
-    <lastmod>${date}</lastmod>
-    <priority>0.8</priority>
-    <changefreq>monthly</changefreq>
-  </url>`;
-      }
-    }
-
-    xml += `
-</urlset>`;
-
-    return {
-      statusCode: 200,
-      headers: {
-        'Content-Type': 'application/xml',
-        'Cache-Control': 'public, max-age=3600',
-      },
-      body: xml,
-    };
-  } catch (e) {
-    return {
-      statusCode: 500,
-      body: `<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"><url><loc>https://andreexplains.com</loc><priority>1.0</priority><changefreq>daily</changefreq></url></urlset>`,
-      headers: { 'Content-Type': 'application/xml' },
-    };
+  for (let i = 0; i < posts.length; i++) {
+    const p = posts[i];
+    const d = p.created_at ? p.created_at.split('T')[0] : now;
+    urls.push('  <url>\n    <loc>https://andreexplains.com/posts/' + p.slug + '</loc>\n    <lastmod>' + d + '</lastmod>\n    <priority>0.8</priority>\n    <changefreq>monthly</changefreq>\n  </url>');
   }
+
+  const body = '<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n' + urls.join('\n') + '\n</urlset>';
+
+  return {
+    statusCode: 200,
+    headers: { 'Content-Type': 'application/xml', 'Cache-Control': 'no-cache' },
+    body: body
+  };
 };
