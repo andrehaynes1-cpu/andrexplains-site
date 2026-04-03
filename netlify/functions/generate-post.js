@@ -26,7 +26,7 @@ exports.handler = async function(event, context) {
         max_tokens: 2500,
         messages: [{
           role: 'user',
-          content: 'Blog post for AndreExplains.com. Topic: "' + topic + '". Write as Andre, casual real voice, contractions, no AI phrases. SEO: primaryKeyword=exact Google phrase, in seoTitle+first paragraph+one H2+last paragraph. Include 2026 in title. Mention free toolkit https://andines.pythonanywhere.com/ once. Mention YouTube Academy https://youtube-mastery-academy.netlify.app/ once. JSON only, no markdown:\n{"seoTitle":"under 60ch","metaDescription":"under 155ch","primaryKeyword":"search phrase","category":"Growth","readTime":6,"slug":"3-5-words","heroSvg":"<svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 1200 480\' width=\'1200\' height=\'480\'><rect width=\'1200\' height=\'480\' fill=\'#080808\'/><rect x=\'0\' y=\'440\' width=\'1200\' height=\'8\' fill=\'#e8ff00\'/><text x=\'600\' y=\'220\' font-family=\'Arial Black,sans-serif\' font-size=\'80\' font-weight=\'900\' fill=\'#fff\' text-anchor=\'middle\'>TOPIC</text><text x=\'600\' y=\'320\' font-family=\'Arial,sans-serif\' font-size=\'28\' fill=\'#e8ff00\' text-anchor=\'middle\'>sub</text></svg>","midSvg":"<svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 900 400\' width=\'900\' height=\'400\'><rect width=\'900\' height=\'400\' fill=\'#0f0f0f\'/><text x=\'450\' y=\'200\' font-family=\'Arial Black,sans-serif\' font-size=\'60\' font-weight=\'900\' fill=\'#fff\' text-anchor=\'middle\'>STAT</text></svg>","intro":"1-2 paragraphs keyword in first sentence","sections":[{"heading":"H2","content":"2 paragraphs"},{"heading":"H2","content":"2 paragraphs"},{"heading":"H2","content":"2 paragraphs"}],"keyTakeaways":["1","2","3"],"faq":[{"q":"q","a":"a"},{"q":"q","a":"a"}]}\nTopic-relevant SVG text. Real PAA questions.'
+          content: 'Blog post for AndreExplains.com. Topic: "' + topic + '". Write as Andre, casual real voice, contractions, no AI phrases. SEO: primaryKeyword=exact Google phrase, in seoTitle+first paragraph+one H2+last paragraph. Include 2026 in title. Mention free toolkit https://andines.pythonanywhere.com/ once. Mention YouTube Academy https://youtube-mastery-academy.netlify.app/ once. JSON only, no markdown:\n{"seoTitle":"under 60ch","metaDescription":"under 155ch","primaryKeyword":"search phrase","category":"Growth","readTime":6,"slug":"3-5-words","heroSvg":"<svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 1200 480\' width=\'1200\' height=\'480\'><rect width=\'1200\' height=\'480\' fill=\'#080808\'/><rect x=\'0\' y=\'440\' width=\'1200\' height=\'8\' fill=\'#e8ff00\'/><text x=\'600\' y=\'220\' font-family=\'Arial Black,sans-serif\' font-size=\'80\' font-weight=\'900\' fill=\'#fff\' text-anchor=\'middle\'>TOPIC</text><text x=\'600\' y=\'320\' font-family=\'Arial,sans-serif\' font-size=\'28\' fill=\'#e8ff00\' text-anchor=\'middle\'>sub</text></svg>","midSvg":"<svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 900 400\' width=\'900\' height=\'400\'><rect width=\'900\' height=\'400\' fill=\'#0f0f0f\'/><text x=\'450\' y=\'200\' font-family=\'Arial Black,sans-serif\' font-size=\'60\' font-weight=\'900\' fill=\'#fff\' text-anchor=\'middle\'>STAT</text></svg>","intro":"1-2 paragraphs keyword in first sentence","sections":[{"heading":"H2","content":"2 paragraphs"},{"heading":"H2","content":"2 paragraphs"},{"heading":"H2","content":"2 paragraphs"}],"keyTakeaways":["1","2","3"],"faq":[{"q":"q","a":"a"},{"q":"q","a":"a"}]}\nTopic-relevant SVG text. Real PAA questions. CRITICAL: Return valid JSON. No trailing commas. Ensure all arrays and objects are properly closed.'
         }]
       })
     });
@@ -36,13 +36,65 @@ exports.handler = async function(event, context) {
 
     const rawText = apiData.content?.map(c => c.text || '').join('') || '';
 
+    // JSON repair function — fixes common AI JSON errors
+    function repairJSON(str) {
+      // Extract JSON object
+      let s = str;
+      const match = s.match(/\{[\s\S]*\}/);
+      if (match) s = match[0];
+      
+      // Remove trailing commas before } or ]
+      s = s.replace(/,\s*}/g, '}');
+      s = s.replace(/,\s*]/g, ']');
+      
+      // Fix missing commas between array elements "}{" or ""] {"
+      s = s.replace(/}(\s*){/g, '},{');
+      s = s.replace(/"(\s*)"/g, function(m, space) {
+        // Only fix if this looks like array element boundary
+        return m;
+      });
+      
+      // Fix unescaped newlines inside strings
+      s = s.replace(/([^\\])\n/g, '$1\\n');
+      
+      // Fix unescaped quotes inside values (common in content fields)
+      // This is tricky — try to parse first, only repair if needed
+      try {
+        return JSON.parse(s);
+      } catch(e) {
+        // More aggressive repair: try to fix broken string values
+        // Replace problematic characters
+        s = s.replace(/[\x00-\x1F]/g, ' ');
+        
+        // Try again
+        try {
+          return JSON.parse(s);
+        } catch(e2) {
+          // Last resort: try to truncate to last valid closing brace
+          let depth = 0;
+          let lastValid = -1;
+          for (let i = 0; i < s.length; i++) {
+            if (s[i] === '{') depth++;
+            if (s[i] === '}') { depth--; if (depth === 0) { lastValid = i; break; } }
+          }
+          if (lastValid > 0) {
+            try {
+              return JSON.parse(s.substring(0, lastValid + 1));
+            } catch(e3) {
+              throw new Error('Could not repair JSON: ' + e3.message);
+            }
+          }
+          throw new Error('Could not parse or repair JSON response');
+        }
+      }
+    }
+
     let post;
     try {
       post = JSON.parse(rawText);
     } catch(e) {
-      const match = rawText.match(/\{[\s\S]*\}/);
-      if (!match) throw new Error('Could not parse response as JSON');
-      post = JSON.parse(match[0]);
+      // Try repair
+      post = repairJSON(rawText);
     }
 
     if (!post || !post.seoTitle) throw new Error('Invalid post structure returned');
