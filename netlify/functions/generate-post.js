@@ -26,7 +26,7 @@ exports.handler = async function(event, context) {
         max_tokens: 2500,
         messages: [{
           role: 'user',
-          content: 'Blog post for AndreExplains.com. Topic: "' + topic + '". Write as Andre, casual real voice, contractions, no AI phrases. SEO: primaryKeyword=exact Google phrase, in seoTitle+first paragraph+one H2+last paragraph. Include 2026 in title. Mention free toolkit https://andines.pythonanywhere.com/ once. Mention YouTube Academy https://youtube-mastery-academy.netlify.app/ once. JSON only, no markdown:\n{"seoTitle":"under 60ch","metaDescription":"under 155ch","primaryKeyword":"search phrase","category":"Growth","readTime":6,"slug":"3-5-words","heroSvg":"<svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 1200 480\' width=\'1200\' height=\'480\'><rect width=\'1200\' height=\'480\' fill=\'#080808\'/><rect x=\'0\' y=\'440\' width=\'1200\' height=\'8\' fill=\'#e8ff00\'/><text x=\'600\' y=\'220\' font-family=\'Arial Black,sans-serif\' font-size=\'80\' font-weight=\'900\' fill=\'#fff\' text-anchor=\'middle\'>TOPIC</text><text x=\'600\' y=\'320\' font-family=\'Arial,sans-serif\' font-size=\'28\' fill=\'#e8ff00\' text-anchor=\'middle\'>sub</text></svg>","midSvg":"<svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 900 400\' width=\'900\' height=\'400\'><rect width=\'900\' height=\'400\' fill=\'#0f0f0f\'/><text x=\'450\' y=\'200\' font-family=\'Arial Black,sans-serif\' font-size=\'60\' font-weight=\'900\' fill=\'#fff\' text-anchor=\'middle\'>STAT</text></svg>","intro":"1-2 paragraphs keyword in first sentence","sections":[{"heading":"H2","content":"2 paragraphs"},{"heading":"H2","content":"2 paragraphs"},{"heading":"H2","content":"2 paragraphs"}],"keyTakeaways":["1","2","3"],"faq":[{"q":"q","a":"a"},{"q":"q","a":"a"}]}\nTopic-relevant SVG text. Real PAA questions. CRITICAL: Return valid JSON. No trailing commas. Ensure all arrays and objects are properly closed.'
+          content: 'Write a blog post for AndreExplains.com. Topic: "' + topic + '".\n\nWrite as Andre — casual, real, contractions, no AI phrases like "dive in" or "landscape".\nSEO: keyword in title, first paragraph, one H2, last paragraph. Include 2026 in title.\nMention free toolkit https://andines.pythonanywhere.com/ once.\nMention YouTube Academy https://youtube-mastery-academy.netlify.app/ once.\n\nUse this EXACT format with XML tags (no JSON):\n\n<seoTitle>Title under 60 chars with keyword and 2026</seoTitle>\n<metaDescription>Under 155 chars with keyword</metaDescription>\n<primaryKeyword>exact google search phrase</primaryKeyword>\n<category>Growth</category>\n<readTime>6</readTime>\n<slug>3-to-5-word-slug</slug>\n<content>\n<p>Intro paragraph with keyword in first sentence.</p>\n<p>Second intro paragraph.</p>\n<h2>First H2 With Related Keyword</h2>\n<p>Paragraph...</p>\n<p>Paragraph...</p>\n<h2>Second H2 Different Angle</h2>\n<p>Paragraph...</p>\n<p>Paragraph...</p>\n<h2>Third H2 Actionable</h2>\n<p>Paragraph...</p>\n<p>Paragraph with keyword again.</p>\n<div class="key-takeaways"><h3>Key Takeaways</h3><ul><li>Point 1</li><li>Point 2</li><li>Point 3</li></ul></div>\n<h2>Frequently Asked Questions</h2>\n<div class="faq-item"><h3 class="faq-question">Real Google PAA question?</h3><p class="faq-answer">Answer.</p></div>\n<div class="faq-item"><h3 class="faq-question">Second question?</h3><p class="faq-answer">Answer.</p></div>\n</content>'
         }]
       })
     });
@@ -36,102 +36,31 @@ exports.handler = async function(event, context) {
 
     const rawText = apiData.content?.map(c => c.text || '').join('') || '';
 
-    // JSON repair function — fixes common AI JSON errors
-    function repairJSON(str) {
-      // Extract JSON object
-      let s = str;
-      const match = s.match(/\{[\s\S]*\}/);
-      if (match) s = match[0];
-      
-      // Remove trailing commas before } or ]
-      s = s.replace(/,\s*}/g, '}');
-      s = s.replace(/,\s*]/g, ']');
-      
-      // Fix missing commas between array elements "}{" or ""] {"
-      s = s.replace(/}(\s*){/g, '},{');
-      s = s.replace(/"(\s*)"/g, function(m, space) {
-        // Only fix if this looks like array element boundary
-        return m;
-      });
-      
-      // Fix unescaped newlines inside strings
-      s = s.replace(/([^\\])\n/g, '$1\\n');
-      
-      // Fix unescaped quotes inside values (common in content fields)
-      // This is tricky — try to parse first, only repair if needed
-      try {
-        return JSON.parse(s);
-      } catch(e) {
-        // More aggressive repair: try to fix broken string values
-        // Replace problematic characters
-        s = s.replace(/[\x00-\x1F]/g, ' ');
-        
-        // Try again
-        try {
-          return JSON.parse(s);
-        } catch(e2) {
-          // Last resort: try to truncate to last valid closing brace
-          let depth = 0;
-          let lastValid = -1;
-          for (let i = 0; i < s.length; i++) {
-            if (s[i] === '{') depth++;
-            if (s[i] === '}') { depth--; if (depth === 0) { lastValid = i; break; } }
-          }
-          if (lastValid > 0) {
-            try {
-              return JSON.parse(s.substring(0, lastValid + 1));
-            } catch(e3) {
-              throw new Error('Could not repair JSON: ' + e3.message);
-            }
-          }
-          throw new Error('Could not parse or repair JSON response');
-        }
-      }
+    // Parse XML-style tags
+    function getTag(text, tag) {
+      const match = text.match(new RegExp('<' + tag + '>([\\s\\S]*?)</' + tag + '>'));
+      return match ? match[1].trim() : '';
     }
 
-    let post;
-    try {
-      post = JSON.parse(rawText);
-    } catch(e) {
-      // Try repair
-      post = repairJSON(rawText);
+    const seoTitle = getTag(rawText, 'seoTitle') || topic;
+    const metaDescription = getTag(rawText, 'metaDescription') || '';
+    const primaryKeyword = getTag(rawText, 'primaryKeyword') || topic;
+    const category = getTag(rawText, 'category') || 'Growth';
+    const readTime = parseInt(getTag(rawText, 'readTime')) || 6;
+    const slugRaw = getTag(rawText, 'slug') || seoTitle;
+    const htmlContent = getTag(rawText, 'content') || '';
+
+    if (!htmlContent || htmlContent.length < 100) {
+      throw new Error('Generated content too short or empty');
     }
 
-    if (!post || !post.seoTitle) throw new Error('Invalid post structure returned');
+    // Build hero SVG
+    const mainWord = seoTitle.split(' ').slice(0, 3).join(' ').toUpperCase();
+    const heroHTML = '<figure class="post-image post-image-hero"><div class="svg-wrapper"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 480" width="1200" height="480"><rect width="1200" height="480" fill="#080808"/><rect x="0" y="440" width="1200" height="8" fill="#e8ff00"/><rect x="0" y="0" width="8" height="480" fill="#e8ff00"/><text x="600" y="220" font-family="Arial Black,sans-serif" font-size="72" font-weight="900" fill="#ffffff" text-anchor="middle">' + mainWord + '</text><text x="600" y="310" font-family="Arial,sans-serif" font-size="28" fill="#e8ff00" text-anchor="middle">' + (primaryKeyword || topic) + '</text><text x="600" y="400" font-family="Arial,sans-serif" font-size="18" fill="#888888" text-anchor="middle">andreexplains.com</text></svg></div><figcaption>' + seoTitle + '</figcaption></figure>';
 
-    const heroHTML = post.heroSvg
-      ? `<figure class="post-image post-image-hero"><div class="svg-wrapper">${post.heroSvg}</div><figcaption>${post.seoTitle}</figcaption></figure>`
-      : '';
+    const fullHTML = heroHTML + htmlContent;
 
-    const midHTML = post.midSvg
-      ? `<figure class="post-image post-image-mid"><div class="svg-wrapper">${post.midSvg}</div><figcaption>${post.primaryKeyword || topic}</figcaption></figure>`
-      : '';
-
-    let html = heroHTML;
-    html += `<p>${(post.intro || '').replace(/\n\n/g, '</p><p>')}</p>`;
-
-    if (post.keyTakeaways?.length) {
-      html += `<div class="key-takeaways"><h3>Key Takeaways</h3><ul>`;
-      post.keyTakeaways.forEach(t => { html += `<li>${t}</li>`; });
-      html += `</ul></div>`;
-    }
-
-    const sections = post.sections || [];
-    sections.forEach((s, i) => {
-      if (s.heading && s.content) {
-        if (i === Math.floor(sections.length / 2)) html += midHTML;
-        html += `<h2>${s.heading}</h2><p>${s.content.replace(/\n\n/g, '</p><p>')}</p>`;
-      }
-    });
-
-    if (post.faq?.length) {
-      html += `<h2>Frequently Asked Questions</h2>`;
-      post.faq.forEach(f => {
-        html += `<div class="faq-item"><h3 class="faq-question">${f.q}</h3><p class="faq-answer">${f.a}</p></div>`;
-      });
-    }
-
-    const slug = (post.slug || post.seoTitle || topic)
+    const slug = slugRaw
       .toLowerCase().replace(/[^a-z0-9\s-]/g, '').replace(/\s+/g, '-').replace(/-+/g, '-').trim().substring(0, 80);
 
     return {
@@ -140,14 +69,14 @@ exports.handler = async function(event, context) {
       body: JSON.stringify({
         success: true,
         post: {
-          seo_title: post.seoTitle,
-          meta_description: post.metaDescription || '',
-          category: post.category || 'Growth',
-          read_time: post.readTime || 6,
-          html_content: html,
+          seo_title: seoTitle,
+          meta_description: metaDescription,
+          category: category,
+          read_time: readTime,
+          html_content: fullHTML,
           topic,
           slug,
-          primary_keyword: post.primaryKeyword || topic,
+          primary_keyword: primaryKeyword,
           date_label: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
         }
       })
