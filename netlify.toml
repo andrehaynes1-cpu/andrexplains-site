@@ -8,6 +8,11 @@
   to = "/.netlify/functions/sitemap"
   status = 200
 
+[[redirects]]
+  from = "/feed.xml"
+  to = "/.netlify/functions/feed"
+  status = 200
+
 [build]
   functions = "netlify/functions"
 
@@ -20,6 +25,9 @@
   timeout = 26
 
 [functions."sitemap"]
+  timeout = 10
+
+[functions."feed"]
   timeout = 10
 
 # Security headers on every page
