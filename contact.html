@@ -18,6 +18,43 @@
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
   :root{--bg:#080808;--bg2:#0f0f0f;--bg3:#161616;--card:#111;--border:#222;--accent:#e8ff00;--accent2:#00d4ff;--text:#ffffff;--text2:#cccccc;--text3:#999999;--font-display:'Bebas Neue',sans-serif;--font-body:'DM Sans',sans-serif;--font-mono:'DM Mono',monospace}
+  
+  /* LIGHT MODE */
+  body.light{--bg:#f5f5f5;--bg2:#efefef;--bg3:#e4e4e4;--card:#fff;--border:#bbb;--accent:#c5a800;--accent2:#0077b6;--text:#111;--text2:#222;--text3:#444}
+  body.light{background:var(--bg);color:var(--text)}
+  body.light nav{background:rgba(245,245,245,.97);border-bottom-color:#bbb}
+  body.light .nav-logo{color:#111}
+  body.light .nav-logo span{color:#0077b6}
+  body.light .nav-links a{color:#222;font-weight:600}
+  body.light .pulse{background:#0077b6}
+  body.light h1{color:#111}
+  body.light h1 em{color:#0077b6}
+  body.light .subtitle{color:#222}
+  body.light .contact-card{background:var(--bg3);border:2px solid #bbb;border-left:4px solid #0077b6}
+  body.light .contact-card h3{color:#111}
+  body.light .contact-card p{color:#222}
+  body.light .contact-card a{color:#0077b6;font-weight:600}
+  body.light .form-card{background:var(--bg3);border:2px solid #bbb}
+  body.light .form-card h2{color:#111}
+  body.light label{color:#0077b6}
+  body.light input,body.light textarea{background:#fff;border:2px solid #bbb;color:#111}
+  body.light input:focus,body.light textarea:focus{border-color:#0077b6}
+  body.light .submit-btn{background:#0077b6;color:#fff}
+  body.light .submit-btn:hover{background:#005f8a}
+  body.light .resource-link{background:var(--bg2);border:2px solid #bbb}
+  body.light .resource-link:hover{border-color:#0077b6}
+  body.light .rl-title{color:#111}
+  body.light .rl-desc{color:#333}
+  body.light .rl-badge{color:#0077b6}
+  body.light .links-section{border-color:#bbb}
+  body.light .links-section h3{color:#111}
+  body.light footer{border-color:#bbb}
+  body.light footer a{color:#333 !important}
+  body.light .f-brand{color:#111}
+  body.light .f-brand em{color:#0077b6}
+  .theme-toggle{width:36px;height:36px;border-radius:50%;border:1px solid var(--border);background:transparent;color:var(--text2);font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s;flex-shrink:0;margin-left:8px}
+  body.light .theme-toggle{border:2px solid #aaa;color:#333}
+  body.light .theme-toggle:hover{border-color:#0077b6;color:#0077b6}
   *{margin:0;padding:0;box-sizing:border-box}
   body{background:var(--bg);color:var(--text2);font-family:var(--font-body);font-size:16px;line-height:1.8;min-height:100vh}
   nav{position:fixed;top:0;left:0;right:0;z-index:900;display:flex;align-items:center;justify-content:space-between;padding:0 40px;height:64px;background:rgba(8,8,8,.97);backdrop-filter:blur(20px);border-bottom:1px solid var(--border)}
@@ -75,6 +112,7 @@
     <li><a href="/contact.html">Contact</a></li>
     <li><a href="https://youtube.com/@andrexplains" target="_blank">YouTube ↗</a></li>
   </ul>
+  <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()" title="Toggle light/dark mode">☀</button>
 </nav>
 
 <div class="container">
@@ -170,6 +208,27 @@ if (window.location.search.includes('sent=true')) {
   document.getElementById('successMsg').style.display = 'block';
   document.getElementById('contactForm').style.display = 'none';
 }
+function toggleTheme() {
+  var body = document.body;
+  var btn = document.getElementById('themeToggle');
+  if (body.classList.contains('light')) {
+    body.classList.remove('light');
+    btn.textContent = '☀';
+    localStorage.setItem('ae_theme', 'dark');
+  } else {
+    body.classList.add('light');
+    btn.textContent = '🌙';
+    localStorage.setItem('ae_theme', 'light');
+  }
+}
+(function() {
+  var saved = localStorage.getItem('ae_theme');
+  if (saved === 'light') {
+    document.body.classList.add('light');
+    var btn = document.getElementById('themeToggle');
+    if (btn) btn.textContent = '🌙';
+  }
+})();
 </script>
 </body>
 </html>
