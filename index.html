@@ -26,6 +26,69 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
   :root{--bg:#080808;--card:#111;--border:#222;--border2:#2a2a2a;--accent:#e8ff00;--accent2:#00d4ff;--red:#ff3c3c;--orange:#ff8c00;--text:#ffffff;--text2:#cccccc;--text3:#999999;--font-display:'Bebas Neue',sans-serif;--font-body:'DM Sans',sans-serif;--font-mono:'DM Mono',monospace}
+  
+  /* LIGHT MODE */
+  body.light{--bg:#f5f5f5;--card:#fff;--border:#bbb;--border2:#aaa;--accent:#c5a800;--accent2:#0077b6;--text:#111;--text2:#222;--text3:#444}
+  body.light{background:var(--bg);color:var(--text)}
+  body.light::before{opacity:0}
+  body.light nav{background:rgba(245,245,245,.97);border-bottom-color:#bbb}
+  body.light .nav-logo{color:#111}
+  body.light .nav-logo span{color:#0077b6}
+  body.light .nav-links a{color:#222;font-weight:600}
+  body.light .nav-links a:hover{color:#0077b6}
+  body.light .nav-cta{border-color:#0077b6 !important;color:#0077b6 !important;font-weight:700 !important}
+  body.light .hero{background:var(--bg)}
+  body.light .hero h1{color:#111}
+  body.light .hero h1 em{color:#0077b6}
+  body.light .hero-sub{color:#222}
+  body.light .hero-tag{color:#222;border-color:#aaa;background:rgba(0,0,0,.04)}
+  body.light .pulse{background:#0077b6}
+  body.light .stat-num{color:#111;font-weight:900}
+  body.light .stat-label{color:#333}
+  body.light .announce-bar{background:rgba(0,119,182,.06);border-color:#bbb}
+  body.light .announce-text{color:#111}
+  body.light .announce-btn{background:#0077b6 !important;color:#fff !important;border-color:#0077b6 !important}
+  body.light .card-inner{background:var(--card);border:2px solid #bbb;box-shadow:0 2px 6px rgba(0,0,0,.1)}
+  body.light .card-inner:hover{border-color:#0077b6;box-shadow:0 4px 12px rgba(0,119,182,.15)}
+  body.light .card-title{color:#111}
+  body.light .card-excerpt{color:#222}
+  body.light .card-cat{color:#0077b6;font-weight:600}
+  body.light .card-time{color:#444}
+  body.light .s-card{background:var(--card);border:2px solid #bbb}
+  body.light .s-promo{border:2px solid #bbb}
+  body.light .s-promo:hover{border-color:#0077b6}
+  body.light .sp-badge{color:#0077b6 !important;font-weight:700}
+  body.light .sp-title{color:#111;font-weight:700}
+  body.light .sp-desc{color:#222}
+  body.light .sp-btn{background:#0077b6 !important;color:#fff !important;border:none;font-weight:700}
+  body.light .promo-strip{background:rgba(0,0,0,.04);border-color:#bbb}
+  body.light .promo-slot{border-color:#bbb}
+  body.light .promo-title{color:#111;font-weight:700}
+  body.light .promo-desc-text{color:#333}
+  body.light .promo-label{color:#444}
+  body.light .promo-badge{font-weight:700}
+  body.light .ticker{background:rgba(0,0,0,.05)}
+  body.light .ticker span{color:#444;font-weight:500}
+  body.light .sec-label{color:#0077b6;font-weight:600}
+  body.light .sec-title{color:#111}
+  body.light .filter-row .tag{color:#333;border:2px solid #bbb;font-weight:500}
+  body.light .filter-row .tag.active{color:#fff;border-color:#0077b6;background:#0077b6}
+  body.light footer{border-color:#bbb}
+  body.light footer a{color:#333 !important;font-weight:500}
+  body.light footer a:hover{color:#0077b6 !important}
+  body.light .f-brand{color:#111}
+  body.light .f-brand em{color:#0077b6}
+  body.light .f-note{color:#444}
+  body.light #about{border-color:#bbb}
+  body.light #about p{color:#222 !important}
+  body.light #about a{border:2px solid #0077b6 !important;font-weight:600}
+  body.light #about a[style*="background:var(--accent)"]{background:#0077b6 !important;color:#fff !important;border-color:#0077b6 !important}
+  body.light .db-st{color:#444}
+  body.light .theme-toggle{border:2px solid #aaa;color:#333}
+  body.light .theme-toggle:hover{border-color:#0077b6;color:#0077b6}
+  
+  .theme-toggle{width:36px;height:36px;border-radius:50%;border:1px solid var(--border);background:transparent;color:var(--text2);font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s;flex-shrink:0;margin-left:8px}
+  .theme-toggle:hover{border-color:var(--accent);color:var(--accent)}
   *{margin:0;padding:0;box-sizing:border-box} html{scroll-behavior:smooth}
   body{background:var(--bg);color:var(--text);font-family:var(--font-body);font-size:17px;line-height:1.8;min-height:100vh}
   nav{position:fixed;top:0;left:0;right:0;z-index:900;display:flex;align-items:center;justify-content:space-between;padding:0 40px;height:64px;background:rgba(8,8,8,.97);backdrop-filter:blur(20px);border-bottom:1px solid var(--border)}
@@ -154,30 +217,30 @@
 
   /* ── MOBILE READABILITY ── */
   @media(max-width:768px){
-    body{font-size:16px;line-height:1.8}
+    body{font-size:17px;line-height:1.8}
     nav{padding:0 16px}
     .nav-links{display:none}
     .hero{padding:32px 16px 48px}
     .hero h1{font-size:clamp(44px,13vw,80px);line-height:1}
-    .hero-sub{font-size:16px;line-height:1.7;margin-bottom:28px}
+    .hero-sub{font-size:17px;line-height:1.75;margin-bottom:28px}
     .hero-stats{gap:20px;flex-wrap:wrap}
-    .stat-num{font-size:26px}
+    .stat-num{font-size:28px}
     .announce-bar{padding:10px 16px;flex-wrap:wrap;gap:8px;text-align:center}
-    .announce-text{font-size:12px}
+    .announce-text{font-size:13px}
     .main-grid{grid-template-columns:1fr;padding:24px 16px;gap:32px}
     .wrap{grid-template-columns:1fr;padding:24px 16px}
     .card-inner{padding:18px 14px;gap:12px}
     .card-num{display:none}
-    .card-title{font-size:18px;line-height:1.4}
-    .card-excerpt{font-size:15px;line-height:1.65;-webkit-line-clamp:3}
+    .card-title{font-size:20px;line-height:1.4}
+    .card-excerpt{font-size:16px;line-height:1.7;-webkit-line-clamp:3}
     .promo-slot{padding:16px}
-    .promo-title{font-size:17px}
-    .promo-desc-text{font-size:13px}
+    .promo-title{font-size:18px}
+    .promo-desc-text{font-size:14px}
     .s-card{padding:18px}
     .sp-title{font-size:19px}
-    .sp-desc{font-size:14px;line-height:1.6}
+    .sp-desc{font-size:15px;line-height:1.6}
     .sp-btn{font-size:16px;padding:12px}
-    .sec-title{font-size:26px}
+    .sec-title{font-size:28px}
     .sidebar{display:block;width:100%}
     .f-brand{font-size:17px}
     .f-note{font-size:12px}
@@ -185,11 +248,17 @@
     .promo-inner-grid{grid-template-columns:1fr}
     .promo-slot{border-right:none;border-bottom:1px solid rgba(232,255,0,.1)}
     .ticker span{font-size:13px;letter-spacing:2px}
+    /* About section mobile */
+    #about > div{grid-template-columns:1fr !important;gap:24px !important;text-align:center}
+    #about{padding:40px 16px !important}
+    #aboutPhotoWrap{width:140px !important;height:140px !important;margin:0 auto}
+    #about p{font-size:16px !important}
+    #about div[style*="display:flex"]{justify-content:center}
   }
   @media(max-width:480px){
     .hero h1{font-size:clamp(38px,15vw,64px)}
     .hero-sub{font-size:16px;line-height:1.75}
-    .card-title{font-size:18px;line-height:1.4}
+    .card-title{font-size:19px;line-height:1.4}
     .card-excerpt{font-size:16px;line-height:1.7}
     .announce-btn{display:none}
   }
@@ -199,12 +268,13 @@
 <nav>
   <a href="/" class="nav-logo"><div class="pulse"></div>ANDRE <span>EXPLAINS</span></a>
   <ul class="nav-links">
+    <li><a href="/">Home</a></li>
     <li><a href="#posts">Articles</a></li>
     <li><a href="#about">About</a></li>
-    <li><a href="#products">Products</a></li>
     <li><a href="/contact.html">Contact</a></li>
     <li><a href="https://youtube.com/@andrexplains" target="_blank" class="nav-cta">YOUTUBE ↗</a></li>
   </ul>
+  <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()" title="Toggle light/dark mode">☀</button>
 </nav>
 <div class="announce-bar" id="announceBar">
   <span class="announce-text" id="aText">🔥 NEW: The Creator Starter Kit is live</span>
@@ -254,17 +324,35 @@
     <a href="#" class="s-promo fp" id="sFree"><div class="sp-inner"><div class="sp-badge">⬇ FREE DOWNLOAD</div><div class="sp-title" id="sfTitle">New Creator Checklist</div><div class="sp-desc" id="sfDesc">The exact setup checklist I wish I had when I started.</div><div class="sp-btn">GET IT FREE →</div></div></a>
     <a href="#" class="s-promo pp" id="sPaid"><div class="sp-inner"><div class="sp-badge">🚀 PREMIUM</div><div class="sp-title" id="spTitle">Creator Starter Kit</div><div class="sp-desc" id="spDesc">The complete system to grow your channel from 0.</div><div class="sp-btn">SEE DETAILS →</div></div></a>
     <a href="https://youtube.com/@andrexplains" target="_blank" class="s-promo yp"><div class="sp-inner"><div class="sp-badge">▶ YOUTUBE</div><div class="sp-title">Andre Explains</div><div class="sp-desc">Watch the full video breakdowns on YouTube every week.</div><div class="sp-btn">SUBSCRIBE →</div></div></a>
-    <div class="s-card" id="about">
-      <div class="s-card-title">ABOUT ANDRE</div>
-      <div class="sidebar-photo" id="sidebarPhotoWrap">
-        <div class="sidebar-photo-placeholder"><span>A</span></div>
-      </div>
-      <div style="font-family:var(--font-display);font-size:22px;letter-spacing:1px;margin-bottom:2px">ANDRE</div>
-      <div style="font-family:var(--font-mono);font-size:11px;color:var(--accent);margin-bottom:12px">@AndreExplains</div>
-      <p style="font-size:13px;color:var(--text2);line-height:1.6;margin-bottom:16px">Documenting the YouTube journey from 0 subscribers. No fake guru energy — just honest breakdowns of what actually works.</p>
-    </div>
   </aside>
 </div>
+
+<!-- ABOUT SECTION -->
+<section id="about" style="max-width:1200px;margin:0 auto;padding:60px 40px;border-top:1px solid var(--border)">
+  <div style="display:grid;grid-template-columns:200px 1fr;gap:40px;align-items:start">
+    <div>
+      <div id="aboutPhotoWrap" style="width:200px;height:200px;border:3px solid var(--accent);overflow:hidden">
+        <div id="aboutPhotoInner" style="width:100%;height:100%;background:linear-gradient(135deg,var(--accent),#00d4ff);display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-size:72px;color:#000">A</div>
+      </div>
+      <div style="text-align:center;margin-top:12px">
+        <div style="font-family:var(--font-display);font-size:24px;letter-spacing:1px">ANDRE HAYNES</div>
+        <div style="font-family:var(--font-mono);font-size:11px;color:var(--accent);margin-top:2px">@AndreExplains</div>
+      </div>
+    </div>
+    <div>
+      <div style="font-family:var(--font-display);font-size:36px;letter-spacing:1px;margin-bottom:16px">ABOUT <span style="color:var(--accent)">ANDRE</span></div>
+      <p style="font-size:17px;color:var(--text2);line-height:1.8;margin-bottom:16px">I started my YouTube channel with zero subscribers, zero views, and zero clue what I was doing. No fancy equipment, no connections, no shortcuts. Just a camera and a decision to figure this out.</p>
+      <p style="font-size:17px;color:var(--text2);line-height:1.8;margin-bottom:16px">Andre Explains is where I document that journey in real time. Every tip I share is something I tested on my own channel first. Every mistake I write about is one I actually made. I don't pretend to have all the answers — I share what's working as I figure it out.</p>
+      <p style="font-size:17px;color:var(--text2);line-height:1.8;margin-bottom:16px">This blog and YouTube channel exist for one reason: to help new creators skip the confusion I went through. If you're starting from zero, you're in the right place.</p>
+      <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:20px">
+        <a href="https://youtube.com/@andrexplains" target="_blank" style="display:inline-block;padding:10px 24px;background:var(--accent);color:#000;font-family:var(--font-display);font-size:14px;letter-spacing:2px;text-decoration:none">SUBSCRIBE ON YOUTUBE</a>
+        <a href="https://andines.pythonanywhere.com/" target="_blank" style="display:inline-block;padding:10px 24px;border:1px solid var(--accent);color:var(--accent);font-family:var(--font-display);font-size:14px;letter-spacing:2px;text-decoration:none">FREE STARTER KIT</a>
+        <a href="/contact.html" style="display:inline-block;padding:10px 24px;border:1px solid var(--border);color:var(--text2);font-family:var(--font-display);font-size:14px;letter-spacing:2px;text-decoration:none">CONTACT ME</a>
+      </div>
+    </div>
+  </div>
+</section>
+
 <footer>
   <div class="f-brand">ANDRE <em>EXPLAINS</em></div>
   <div style="margin-top:8px;font-size:12px;display:flex;gap:16px;justify-content:center;flex-wrap:wrap">
@@ -356,12 +444,107 @@ async function loadAuthorPhoto() {
   } catch(e) {}
   if (!photoSrc) photoSrc = localStorage.getItem('ae_author_photo') || '';
   if (photoSrc) {
-    document.getElementById('sidebarPhotoWrap').innerHTML = `<img src="${photoSrc}" alt="Andre — AndreExplains" style="width:100%;height:100%;object-fit:cover;object-position:top;display:block">`;
+    var photoImg = '<img src="' + photoSrc + '" alt="Andre Haynes — AndreExplains" style="width:100%;height:100%;object-fit:cover;object-position:top;display:block">';
+    document.getElementById('aboutPhotoInner').outerHTML = photoImg;
   }
 }
 
 init();
 loadAuthorPhoto();
+loadMaintenanceStatus();
+
+// ═══ MAINTENANCE MODE — Frontend check ═══
+var maintenanceServices = {};
+async function loadMaintenanceStatus() {
+  try {
+    var res = await db.from('settings').select('key, value').like('key', 'maint_%');
+    if (res.data) {
+      res.data.forEach(function(row) {
+        maintenanceServices[row.key] = row.value;
+      });
+    }
+    document.addEventListener('click', function(e) {
+      var link = e.target.closest('a[href]');
+      if (!link) return;
+      var href = link.getAttribute('href') || '';
+      var blocked = false;
+      var serviceName = '';
+      
+      if (href.indexOf('youtubereports') !== -1 && maintenanceServices['maint_reports'] === 'down') {
+        blocked = true; serviceName = 'YouTube Reports';
+      } else if (href.indexOf('andines.pythonanywhere') !== -1 && maintenanceServices['maint_toolkit'] === 'down') {
+        blocked = true; serviceName = 'Free Starter Toolkit';
+      } else if (href.indexOf('youtube-mastery-academy') !== -1 && maintenanceServices['maint_academy'] === 'down') {
+        blocked = true; serviceName = 'YouTube Mastery Academy';
+      }
+      
+      if (blocked) {
+        e.preventDefault();
+        e.stopPropagation();
+        var customMsg = maintenanceServices['maint_message'] || "We'll be back shortly. Thanks for your patience!";
+        showMaintenanceModal(serviceName, customMsg);
+      }
+    });
+  } catch(e) {}
+}
+
+function showMaintenanceModal(service, message) {
+  var existing = document.getElementById('maintModal');
+  if (existing) existing.remove();
+  var modal = document.createElement('div');
+  modal.id = 'maintModal';
+  modal.style.cssText = 'position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.7);display:flex;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(4px)';
+  modal.innerHTML = '<div style="background:#111;border:2px solid #e8ff00;max-width:420px;width:100%;padding:32px;text-align:center">'
+    + '<div style="font-size:36px;margin-bottom:12px">🔧</div>'
+    + '<div style="font-family:\'Bebas Neue\',sans-serif;font-size:28px;letter-spacing:1px;color:#fff;margin-bottom:8px">' + service.toUpperCase() + '</div>'
+    + '<div style="font-family:\'Bebas Neue\',sans-serif;font-size:18px;color:#e8ff00;margin-bottom:16px">TEMPORARILY UNAVAILABLE</div>'
+    + '<p style="font-size:15px;color:#ccc;line-height:1.7;margin-bottom:24px">' + message + '</p>'
+    + '<button onclick="document.getElementById(\'maintModal\').remove()" style="background:#e8ff00;color:#000;border:none;padding:12px 32px;font-family:\'Bebas Neue\',sans-serif;font-size:16px;letter-spacing:2px;cursor:pointer">GOT IT</button>'
+    + '</div>';
+  document.body.appendChild(modal);
+  modal.addEventListener('click', function(e) { if (e.target === modal) modal.remove(); });
+}
+
+// ═══ LINK CLICK TRACKER ═══
+document.addEventListener('click', function(e) {
+  var link = e.target.closest('a[href]');
+  if (!link) return;
+  var href = link.getAttribute('href') || '';
+  // Only track external links and internal post links
+  if (href.startsWith('http') || href.startsWith('/posts/')) {
+    try {
+      db.from('link_clicks').insert({
+        link_url: href,
+        from_page: window.location.pathname
+      });
+    } catch(err) {}
+  }
+});
+
+// ═══ DARK / LIGHT MODE TOGGLE ═══
+function toggleTheme() {
+  var body = document.body;
+  var btn = document.getElementById('themeToggle');
+  if (body.classList.contains('light')) {
+    body.classList.remove('light');
+    btn.textContent = '☀';
+    btn.title = 'Switch to light mode';
+    localStorage.setItem('ae_theme', 'dark');
+  } else {
+    body.classList.add('light');
+    btn.textContent = '🌙';
+    btn.title = 'Switch to dark mode';
+    localStorage.setItem('ae_theme', 'light');
+  }
+}
+(function() {
+  var saved = localStorage.getItem('ae_theme');
+  if (saved === 'light') {
+    document.body.classList.add('light');
+    var btn = document.getElementById('themeToggle');
+    if (btn) { btn.textContent = '🌙'; btn.title = 'Switch to dark mode'; }
+  }
+})();
 </script>
 </body>
 </html>
