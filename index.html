@@ -451,7 +451,6 @@ function render(){
     return '<a href="/posts/' + p.slug + '" class="post-card ' + (i===0&&af==='all'?'featured':'') + '">'
       + (i===0&&af==='all'?'<div class="f-badge">LATEST</div>':'')
       + '<div class="card-inner">'
-      + '<div class="card-num">0' + (fl.length - i) + '</div>'
       + '<div class="card-body">'
       + '<div class="card-meta"><span class="card-cat">' + p.category + '</span><span class="card-date">' + p.date_label + '</span></div>'
       + '<h2 class="card-title">' + p.seo_title + '</h2>'
