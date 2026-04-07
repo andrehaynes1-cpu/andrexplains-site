@@ -510,14 +510,13 @@ document.addEventListener('click', function(e) {
   var link = e.target.closest('a[href]');
   if (!link) return;
   var href = link.getAttribute('href') || '';
-  // Only track external links and internal post links
   if (href.startsWith('http') || href.startsWith('/posts/')) {
-    try {
-      db.from('link_clicks').insert({
-        link_url: href,
-        from_page: window.location.pathname
-      });
-    } catch(err) {}
+    db.from('link_clicks').insert([{
+      link_url: href,
+      from_page: window.location.pathname
+    }]).then(function(res) {
+      if (res.error) console.log('Click track error:', res.error.message);
+    });
   }
 });
 
