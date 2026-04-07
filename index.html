@@ -262,6 +262,15 @@
     .card-excerpt{font-size:16px;line-height:1.7}
     .announce-btn{display:none}
   }
+  /* ── LOAD MORE ── */
+  .load-more-wrap{text-align:center;padding:32px 0}
+  .load-more-btn{display:inline-flex;align-items:center;gap:10px;padding:14px 40px;background:transparent;border:2px solid var(--accent);color:var(--accent);font-family:var(--font-display);font-size:18px;letter-spacing:2px;cursor:pointer;transition:all .25s}
+  .load-more-btn:hover{background:var(--accent);color:#000;transform:translateY(-2px)}
+  .load-more-btn:active{transform:translateY(0)}
+  .post-count-info{font-family:var(--font-mono);font-size:13px;color:var(--text3);text-align:center;margin-top:12px}
+  body.light .load-more-btn{border-color:#0077b6;color:#0077b6}
+  body.light .load-more-btn:hover{background:#0077b6;color:#fff}
+  body.light .post-count-info{color:#444}
 </style>
 </head>
 <body>
@@ -415,7 +424,7 @@ async function loadProductsFromSupabase(){
 }
 loadProductsFromSupabase();
 
-let allPosts=[],af='all';
+let allPosts=[],af='all',postsPerPage=10,visibleCount=10;
 async function init(){
   const st=document.getElementById('dbSt');
   try{
@@ -424,6 +433,7 @@ async function init(){
     allPosts=data||[];
     st.textContent='● LIVE';st.className='db-st on';
     document.getElementById('postCount').textContent=allPosts.length;
+    visibleCount=postsPerPage;
     render();
   }catch(e){st.textContent='● OFFLINE';st.className='db-st off';document.getElementById('pc').innerHTML='<div class="empty"><h3>CONNECTION ERROR</h3><p>Check Supabase credentials.</p></div>';}
 }
@@ -432,9 +442,41 @@ function render(){
   const fl=af==='all'?allPosts:allPosts.filter(p=>p.category===af);
   document.getElementById('postCount').textContent=allPosts.length;
   if(!fl.length){c.innerHTML=`<div class="empty"><h3>${!allPosts.length?'NO POSTS YET':'NO POSTS HERE'}</h3><p>${!allPosts.length?'Posts will appear here once published.':'No posts in this category yet.'}</p></div>`;return;}
-  c.innerHTML=fl.map((p,i)=>`<a href="/posts/${p.slug}" class="post-card ${i===0&&af==='all'?'featured':''}">${i===0&&af==='all'?'<div class="f-badge">LATEST</div>':''}<div class="card-inner"><div class="card-num">0${fl.length-i}</div><div class="card-body"><div class="card-meta"><span class="card-cat">${p.category}</span><span class="card-date">${p.date_label}</span></div><h2 class="card-title">${p.seo_title}</h2><p class="card-excerpt">${p.meta_description}</p><div class="card-footer"><span class="read-more">Read Article →</span><span class="read-time">${p.read_time} min read</span></div></div></div></a>`).join('');
+  
+  var showing = fl.slice(0, visibleCount);
+  var hasMore = visibleCount < fl.length;
+  var remaining = fl.length - visibleCount;
+  
+  var html = showing.map(function(p, i) {
+    return '<a href="/posts/' + p.slug + '" class="post-card ' + (i===0&&af==='all'?'featured':'') + '">'
+      + (i===0&&af==='all'?'<div class="f-badge">LATEST</div>':'')
+      + '<div class="card-inner">'
+      + '<div class="card-num">0' + (fl.length - i) + '</div>'
+      + '<div class="card-body">'
+      + '<div class="card-meta"><span class="card-cat">' + p.category + '</span><span class="card-date">' + p.date_label + '</span></div>'
+      + '<h2 class="card-title">' + p.seo_title + '</h2>'
+      + '<p class="card-excerpt">' + p.meta_description + '</p>'
+      + '<div class="card-footer"><span class="read-more">Read Article →</span><span class="read-time">' + p.read_time + ' min read</span></div>'
+      + '</div></div></a>';
+  }).join('');
+  
+  if (hasMore) {
+    html += '<div class="load-more-wrap">'
+      + '<button class="load-more-btn" onclick="loadMorePosts()">LOAD MORE ARTICLES ↓</button>'
+      + '<div class="post-count-info">Showing ' + showing.length + ' of ' + fl.length + ' articles' + (remaining > 0 ? ' · ' + remaining + ' more' : '') + '</div>'
+      + '</div>';
+  } else if (fl.length > postsPerPage) {
+    html += '<div class="post-count-info" style="padding:24px 0">Showing all ' + fl.length + ' articles</div>';
+  }
+  
+  c.innerHTML = html;
 }
-function fp(cat,el){af=cat;document.querySelectorAll('.tag').forEach(t=>t.classList.toggle('active',t.textContent.toLowerCase()===cat.toLowerCase()||(cat==='all'&&t.textContent==='All')));render();}
+function loadMorePosts(){
+  visibleCount += postsPerPage;
+  render();
+  // Don't scroll — user stays where they are and new posts appear below
+}
+function fp(cat,el){af=cat;visibleCount=postsPerPage;document.querySelectorAll('.tag').forEach(t=>t.classList.toggle('active',t.textContent.toLowerCase()===cat.toLowerCase()||(cat==='all'&&t.textContent==='All')));render();}
 // Load author photo — try Supabase first (works on all browsers/devices), fallback to localStorage
 async function loadAuthorPhoto() {
   let photoSrc = '';
