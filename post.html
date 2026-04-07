@@ -1240,7 +1240,17 @@ function getArticleText() {
   if (!body) return '';
   var clone = body.cloneNode(true);
   clone.querySelectorAll('.in-post-promo, .key-takeaways, figure, .faq-item, .related-reading').forEach(function(el) { el.remove(); });
-  return (clone.textContent || clone.innerText || '').replace(/\s+/g, ' ').trim();
+  // Replace links with just their text content so URLs are never read aloud
+  clone.querySelectorAll('a').forEach(function(a) {
+    var text = a.textContent || '';
+    a.outerHTML = text;
+  });
+  var text = (clone.textContent || clone.innerText || '').replace(/\s+/g, ' ').trim();
+  // Remove any remaining raw URLs
+  text = text.replace(/https?:\/\/[^\s]+/g, '');
+  // Clean up double spaces
+  text = text.replace(/\s+/g, ' ').trim();
+  return text;
 }
 
 function chunkText(text) {
