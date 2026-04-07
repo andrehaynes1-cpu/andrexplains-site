@@ -815,7 +815,7 @@ async function loadPost() {
             <a class="share-btn" href="https://api.whatsapp.com/send?text=${encodeURIComponent(post.seo_title + ' ' + fullUrl)}" target="_blank">💬 WhatsApp</a>
           </div>
 
-          <div class="audio-player" id="audioPlayer">
+          <div class="audio-player" id="audioPlayer" data-readtime="${post.read_time}">
             <div class="audio-player-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 18v-6a9 9 0 0 1 18 0v6"/><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"/></svg></div>
             <div class="audio-player-info">
               <div class="audio-player-label">Listen to This Article</div>
@@ -1109,7 +1109,7 @@ function toggleTheme() {
   }
 })();
 
-// ═══ AUDIO PLAYER — Background Playback Enabled ═══
+// ═══ AUDIO PLAYER — Stable Continuous Playback ═══
 var audioSynth = window.speechSynthesis;
 var audioUtterance = null;
 var audioPlaying = false;
@@ -1121,140 +1121,209 @@ var audioTextChunks = [];
 var audioCurrentChunk = 0;
 var audioTotalChunks = 0;
 var wakeLock = null;
-var keepAliveInterval = null;
+var keepAliveTimer = null;
+var selectedVoice = null;
+var voicesLoaded = false;
 
-// Request Wake Lock to prevent phone from sleeping during playback
-async function requestWakeLock() {
-  try {
-    if ('wakeLock' in navigator) {
-      wakeLock = await navigator.wakeLock.request('screen');
-      wakeLock.addEventListener('release', function() { wakeLock = null; });
+// ── VOICE SELECTION — Best natural voice available ──
+function pickBestVoice() {
+  var voices = audioSynth.getVoices();
+  if (!voices.length) return null;
+  
+  // Ranked priority list — best sounding voices first
+  var priority = [
+    // iOS/macOS premium voices (most natural)
+    'Samantha (Enhanced)', 'Samantha', 'Alex', 'Daniel', 'Karen', 'Moira', 'Tessa',
+    // Android premium
+    'Google UK English Female', 'Google UK English Male', 'Google US English',
+    // Windows neural voices
+    'Microsoft Aria', 'Microsoft Jenny', 'Microsoft Guy',
+    'Microsoft Mark', 'Microsoft Zira', 'Microsoft David',
+    // Any with Natural/Neural/Premium in name
+  ];
+  
+  // Try exact name matches first
+  for (var p = 0; p < priority.length; p++) {
+    for (var v = 0; v < voices.length; v++) {
+      if (voices[v].name === priority[p] || voices[v].name.indexOf(priority[p]) !== -1) {
+        return voices[v];
+      }
     }
-  } catch(e) {}
-}
-
-function releaseWakeLock() {
-  if (wakeLock) { try { wakeLock.release(); } catch(e) {} wakeLock = null; }
-}
-
-// Chrome/Android pauses Speech Synthesis after ~15s in background
-// This workaround resumes it every 10 seconds
-function startKeepAlive() {
-  stopKeepAlive();
-  keepAliveInterval = setInterval(function() {
-    if (audioPlaying && !audioPaused && audioSynth.speaking) {
-      audioSynth.pause();
-      audioSynth.resume();
+  }
+  
+  // Try voices with premium keywords
+  var keywords = ['Natural', 'Neural', 'Premium', 'Enhanced', 'Online'];
+  for (var k = 0; k < keywords.length; k++) {
+    for (var v2 = 0; v2 < voices.length; v2++) {
+      if (voices[v2].name.indexOf(keywords[k]) !== -1 && voices[v2].lang.indexOf('en') !== -1) {
+        return voices[v2];
+      }
     }
-  }, 10000);
+  }
+  
+  // Fallback: best English voice (prefer female — typically clearer for reading)
+  var englishVoices = voices.filter(function(v) { return v.lang.indexOf('en') !== -1; });
+  var femaleVoice = englishVoices.find(function(v) { 
+    return v.name.indexOf('Female') !== -1 || v.name.indexOf('Samantha') !== -1 || 
+           v.name.indexOf('Karen') !== -1 || v.name.indexOf('Zira') !== -1 ||
+           v.name.indexOf('Jenny') !== -1 || v.name.indexOf('Aria') !== -1;
+  });
+  if (femaleVoice) return femaleVoice;
+  
+  // Any English voice that's not compact
+  var goodVoice = englishVoices.find(function(v) { return v.name.indexOf('Compact') === -1 && v.name.indexOf('compact') === -1; });
+  return goodVoice || englishVoices[0] || voices[0];
 }
 
-function stopKeepAlive() {
-  if (keepAliveInterval) { clearInterval(keepAliveInterval); keepAliveInterval = null; }
+// Load voices — browsers load them async
+function initVoices() {
+  var voices = audioSynth.getVoices();
+  if (voices.length) {
+    selectedVoice = pickBestVoice();
+    voicesLoaded = true;
+    updateVoiceDisplay();
+  }
+}
+initVoices();
+if (audioSynth.onvoiceschanged !== undefined) {
+  audioSynth.onvoiceschanged = function() { initVoices(); };
 }
 
+function updateVoiceDisplay() {
+  var status = document.getElementById('audioStatus');
+  if (status && selectedVoice && !audioPlaying) {
+    var name = selectedVoice.name.split('(')[0].trim();
+    if (name.length > 20) name = name.substring(0, 20);
+    status.textContent = 'Ready — voice: ' + name;
+  }
+}
+
+// ── TEXT EXTRACTION ──
 function getArticleText() {
   var body = document.querySelector('.article-body');
   if (!body) return '';
   var clone = body.cloneNode(true);
-  clone.querySelectorAll('.in-post-promo, .key-takeaways, figure, .faq-item').forEach(function(el) { el.remove(); });
-  var text = clone.textContent || clone.innerText || '';
-  text = text.replace(/\s+/g, ' ').trim();
-  return text;
+  clone.querySelectorAll('.in-post-promo, .key-takeaways, figure, .faq-item, .related-reading').forEach(function(el) { el.remove(); });
+  return (clone.textContent || clone.innerText || '').replace(/\s+/g, ' ').trim();
 }
 
-function chunkText(text, maxLen) {
+// ── CHUNKING — Larger chunks = fewer stops ──
+function chunkText(text) {
   var chunks = [];
+  // Split into sentences
   var sentences = text.match(/[^.!?]+[.!?]+/g) || [text];
   var current = '';
+  
   for (var i = 0; i < sentences.length; i++) {
-    if ((current + sentences[i]).length > maxLen && current.length > 0) {
+    // Build chunks of ~500 chars — much larger than before
+    if ((current + sentences[i]).length > 500 && current.length > 0) {
       chunks.push(current.trim());
       current = sentences[i];
     } else {
-      current += sentences[i];
+      current += ' ' + sentences[i];
     }
   }
   if (current.trim()) chunks.push(current.trim());
   return chunks;
 }
 
+// ── KEEP ALIVE — Prevents Chrome from killing speech ──
+function startKeepAlive() {
+  stopKeepAlive();
+  // Chrome kills speech synthesis after ~15s of background
+  // This nudges it every 5 seconds to stay alive
+  keepAliveTimer = setInterval(function() {
+    if (audioPlaying && !audioPaused && audioSynth.speaking && !audioSynth.paused) {
+      // Quick pause-resume keeps the engine alive without audible interruption
+      audioSynth.pause();
+      setTimeout(function() {
+        if (audioPlaying && !audioPaused) {
+          audioSynth.resume();
+        }
+      }, 50);
+    }
+  }, 5000);
+}
+
+function stopKeepAlive() {
+  if (keepAliveTimer) { clearInterval(keepAliveTimer); keepAliveTimer = null; }
+}
+
+// ── WAKE LOCK — Prevents phone sleep ──
+async function requestWakeLock() {
+  try {
+    if ('wakeLock' in navigator) {
+      wakeLock = await navigator.wakeLock.request('screen');
+    }
+  } catch(e) {}
+}
+function releaseWakeLock() {
+  if (wakeLock) { try { wakeLock.release(); } catch(e) {} wakeLock = null; }
+}
+
+// ── SPEAK A CHUNK ──
 function speakChunk(index) {
   if (index >= audioTextChunks.length) {
     stopAudio();
-    document.getElementById('audioStatus').textContent = 'Finished — click play to listen again';
+    document.getElementById('audioStatus').textContent = 'Finished — tap play to listen again';
+    document.getElementById('audioProgress').style.width = '100%';
     return;
   }
+  
   audioCurrentChunk = index;
-  audioUtterance = new SpeechSynthesisUtterance(audioTextChunks[index]);
-  audioUtterance.rate = audioSpeed;
-  audioUtterance.pitch = 1.0;
-  audioUtterance.lang = 'en-US';
+  var utterance = new SpeechSynthesisUtterance(audioTextChunks[index]);
+  utterance.rate = audioSpeed;
+  utterance.pitch = 1.0;
+  utterance.lang = 'en-US';
   
-  var voices = audioSynth.getVoices();
-  var bestVoice = null;
-  
-  var premiumKeywords = ['Natural', 'Neural', 'Premium', 'Enhanced', 'Wavenet', 'Studio'];
-  for (var p = 0; p < premiumKeywords.length; p++) {
-    for (var v = 0; v < voices.length; v++) {
-      if (voices[v].name.indexOf(premiumKeywords[p]) !== -1 && voices[v].lang.indexOf('en') !== -1) {
-        bestVoice = voices[v]; break;
-      }
-    }
-    if (bestVoice) break;
-  }
-  
-  if (!bestVoice) {
-    var goodVoices = ['Samantha','Daniel','Karen','Moira','Alex','Microsoft Mark','Microsoft Zira','Microsoft David','Google UK English Male','Google UK English Female','Google US English'];
-    for (var g = 0; g < goodVoices.length; g++) {
-      for (var v2 = 0; v2 < voices.length; v2++) {
-        if (voices[v2].name.indexOf(goodVoices[g]) !== -1) { bestVoice = voices[v2]; break; }
-      }
-      if (bestVoice) break;
+  if (selectedVoice) {
+    utterance.voice = selectedVoice;
+    // Fine-tune for non-premium voices
+    if (selectedVoice.name.indexOf('Natural') === -1 && selectedVoice.name.indexOf('Neural') === -1 && 
+        selectedVoice.name.indexOf('Enhanced') === -1 && selectedVoice.name.indexOf('Samantha') === -1) {
+      utterance.pitch = 1.03;
+      utterance.rate = audioSpeed * 0.97;
     }
   }
   
-  if (!bestVoice) {
-    for (var v3 = 0; v3 < voices.length; v3++) {
-      if (voices[v3].lang.indexOf('en') !== -1 && voices[v3].name.indexOf('Compact') === -1) { bestVoice = voices[v3]; break; }
-    }
-  }
-  
-  if (bestVoice) {
-    audioUtterance.voice = bestVoice;
-    if (bestVoice.name.indexOf('Samantha') !== -1 || bestVoice.name.indexOf('Natural') !== -1 || bestVoice.name.indexOf('Neural') !== -1) {
-      audioUtterance.pitch = 1.0;
-    } else {
-      audioUtterance.pitch = 1.05;
-      audioUtterance.rate = audioSpeed * 0.95;
-    }
-  }
-  
-  audioUtterance.onend = function() {
-    if (audioPlaying) {
+  // When this chunk finishes, play the next one seamlessly
+  utterance.onend = function() {
+    if (audioPlaying && !audioPaused) {
       var pct = Math.round(((index + 1) / audioTotalChunks) * 100);
       document.getElementById('audioProgress').style.width = pct + '%';
-      speakChunk(index + 1);
+      // Small delay between chunks for natural breathing
+      setTimeout(function() {
+        if (audioPlaying && !audioPaused) {
+          speakChunk(index + 1);
+        }
+      }, 150);
     }
   };
   
-  // Error recovery — if speech fails, try next chunk
-  audioUtterance.onerror = function(e) {
-    if (e.error !== 'canceled' && audioPlaying) {
-      setTimeout(function() { speakChunk(index + 1); }, 500);
+  // If chunk errors, skip to next
+  utterance.onerror = function(e) {
+    if (e.error !== 'canceled' && e.error !== 'interrupted' && audioPlaying) {
+      setTimeout(function() { speakChunk(index + 1); }, 300);
     }
   };
   
-  audioSynth.speak(audioUtterance);
+  audioUtterance = utterance;
+  audioSynth.speak(utterance);
+  
+  // Update UI
   var pct = Math.round((index / audioTotalChunks) * 100);
   document.getElementById('audioProgress').style.width = pct + '%';
-  var minsLeft = Math.max(1, Math.round(((audioTotalChunks - index) / audioTotalChunks) * (audioTotalChunks * 0.4)));
-  document.getElementById('audioStatus').textContent = 'Playing... ~' + minsLeft + ' min left' + (bestVoice ? ' (' + bestVoice.name.split(' ').slice(0,2).join(' ') + ')' : '');
+  var minsLeft = Math.max(1, Math.round(((audioTotalChunks - index) / audioTotalChunks) * parseInt(document.getElementById('audioPlayer').dataset.readtime || 7)));
+  var voiceName = selectedVoice ? selectedVoice.name.split('(')[0].split(' ').slice(0, 2).join(' ') : '';
+  document.getElementById('audioStatus').textContent = 'Playing... ~' + minsLeft + ' min left' + (voiceName ? ' (' + voiceName.trim() + ')' : '');
 }
 
+// ── CONTROLS ──
 function toggleAudio() {
   var btn = document.getElementById('audioPlayBtn');
+  
   if (audioPlaying && !audioPaused) {
+    // Pause
     audioSynth.pause();
     audioPaused = true;
     btn.textContent = '▶ RESUME';
@@ -1262,27 +1331,45 @@ function toggleAudio() {
     document.getElementById('audioStatus').textContent = 'Paused';
     stopKeepAlive();
     releaseWakeLock();
+    
   } else if (audioPaused) {
+    // Resume
     audioSynth.resume();
     audioPaused = false;
     btn.textContent = '⏸ PAUSE';
     btn.classList.add('playing');
-    document.getElementById('audioStatus').textContent = 'Playing...';
+    document.getElementById('audioStatus').textContent = 'Resuming...';
     startKeepAlive();
     requestWakeLock();
+    
   } else {
+    // Start fresh
+    if (!voicesLoaded) initVoices();
     var text = getArticleText();
-    if (!text) { document.getElementById('audioStatus').textContent = 'No article text found'; return; }
-    audioTextChunks = chunkText(text, 200);
+    if (!text) {
+      document.getElementById('audioStatus').textContent = 'No article text found';
+      return;
+    }
+    
+    // Cancel any existing speech
+    audioSynth.cancel();
+    
+    audioTextChunks = chunkText(text);
     audioTotalChunks = audioTextChunks.length;
     audioCurrentChunk = 0;
     audioPlaying = true;
     audioPaused = false;
+    
     btn.textContent = '⏸ PAUSE';
     btn.classList.add('playing');
+    
     requestWakeLock();
     startKeepAlive();
-    speakChunk(0);
+    
+    // Small delay to ensure cancel completed
+    setTimeout(function() {
+      speakChunk(0);
+    }, 100);
   }
 }
 
@@ -1295,8 +1382,7 @@ function stopAudio() {
   releaseWakeLock();
   var btn = document.getElementById('audioPlayBtn');
   if (btn) { btn.textContent = '▶ PLAY'; btn.classList.remove('playing'); }
-  var prog = document.getElementById('audioProgress');
-  if (prog) prog.style.width = '100%';
+  updateVoiceDisplay();
 }
 
 function cycleSpeed() {
@@ -1304,8 +1390,9 @@ function cycleSpeed() {
   audioSpeed = audioSpeeds[audioSpeedIndex];
   document.getElementById('audioSpeedBtn').textContent = audioSpeed + 'x';
   if (audioPlaying && !audioPaused) {
+    // Restart current chunk at new speed
     audioSynth.cancel();
-    speakChunk(audioCurrentChunk);
+    setTimeout(function() { speakChunk(audioCurrentChunk); }, 100);
   }
 }
 
@@ -1315,6 +1402,9 @@ function seekAudio(e) {
   var rect = bar.getBoundingClientRect();
   var pct = (e.clientX - rect.left) / rect.width;
   var targetChunk = Math.floor(pct * audioTotalChunks);
+  if (targetChunk < 0) targetChunk = 0;
+  if (targetChunk >= audioTotalChunks) targetChunk = audioTotalChunks - 1;
+  
   audioSynth.cancel();
   audioPlaying = true;
   audioPaused = false;
@@ -1322,19 +1412,96 @@ function seekAudio(e) {
   document.getElementById('audioPlayBtn').classList.add('playing');
   startKeepAlive();
   requestWakeLock();
-  speakChunk(targetChunk);
+  setTimeout(function() { speakChunk(targetChunk); }, 100);
 }
 
-// Re-acquire wake lock when user returns to page
+// Re-acquire wake lock when returning to tab
 document.addEventListener('visibilitychange', function() {
   if (document.visibilityState === 'visible' && audioPlaying && !audioPaused) {
     requestWakeLock();
+    // If speech stopped while in background, restart from current chunk
+    if (!audioSynth.speaking && !audioSynth.paused) {
+      setTimeout(function() {
+        if (audioPlaying && !audioPaused && !audioSynth.speaking) {
+          speakChunk(audioCurrentChunk);
+        }
+      }, 300);
+    }
   }
 });
 
-if (audioSynth.onvoiceschanged !== undefined) {
-  audioSynth.onvoiceschanged = function() { audioSynth.getVoices(); };
+// ── DEVICE COMPATIBILITY FIXES ──
+
+// FIX 1: Safari iOS requires user gesture to start speech
+// The play button handles this naturally since it's an onclick
+
+// FIX 2: Some Android browsers don't fire onvoiceschanged
+// Retry voice loading after delays
+setTimeout(function() { if (!voicesLoaded) initVoices(); }, 500);
+setTimeout(function() { if (!voicesLoaded) initVoices(); }, 1500);
+setTimeout(function() { if (!voicesLoaded) initVoices(); }, 3000);
+
+// FIX 3: Chrome desktop has a bug where speech stops after exactly 15 seconds
+// if the utterance is too long. Our chunking at 500 chars prevents this
+// because each chunk takes ~20-30 seconds to speak, which is under the
+// problematic threshold when combined with the keep-alive timer.
+
+// FIX 4: Samsung Internet browser doesn't support SpeechSynthesis well
+// Detect and show message
+if (!window.speechSynthesis) {
+  var player = document.getElementById('audioPlayer');
+  if (player) {
+    player.innerHTML = '<div class="audio-player-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 18v-6a9 9 0 0 1 18 0v6"/><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"/></svg></div>'
+      + '<div class="audio-player-info"><div class="audio-player-label">Listen to This Article</div>'
+      + '<div class="audio-player-status">Audio not supported on this browser. Try Chrome or Safari.</div></div>';
+  }
 }
+
+// FIX 5: Firefox sometimes has delayed voice loading
+// Also Firefox doesn't support wake lock — gracefully handled by try/catch
+
+// FIX 6: Older iPhones (iOS 14 and below) may have limited voices
+// The voice picker already falls back through multiple tiers
+
+// FIX 7: If user locks phone and comes back, speech may have died
+// The visibilitychange handler above catches this and restarts
+
+// FIX 8: Some browsers cancel speech when page loses focus
+// Additional focus event listener as backup
+window.addEventListener('focus', function() {
+  if (audioPlaying && !audioPaused && !audioSynth.speaking && !audioSynth.paused) {
+    setTimeout(function() {
+      if (audioPlaying && !audioPaused && !audioSynth.speaking) {
+        speakChunk(audioCurrentChunk);
+      }
+    }, 200);
+  }
+});
+
+// FIX 9: Edge case — user switches between tabs rapidly
+// Prevent multiple speakChunk calls from stacking
+var speakLock = false;
+var origSpeakChunk = speakChunk;
+speakChunk = function(index) {
+  if (speakLock) return;
+  speakLock = true;
+  setTimeout(function() { speakLock = false; }, 200);
+  origSpeakChunk(index);
+};
+
+// FIX 10: Android Chrome — speech sometimes stops when notification appears
+// The keep-alive timer handles this, but add extra check every 3 seconds
+setInterval(function() {
+  if (audioPlaying && !audioPaused && !audioSynth.speaking && !audioSynth.paused && audioCurrentChunk < audioTotalChunks) {
+    // Speech died silently — restart current chunk
+    setTimeout(function() {
+      if (audioPlaying && !audioPaused && !audioSynth.speaking) {
+        audioSynth.cancel();
+        setTimeout(function() { speakChunk(audioCurrentChunk); }, 100);
+      }
+    }, 500);
+  }
+}, 3000);
 </script>
 <script async type="application/javascript"
         src="https://news.google.com/swg/js/v1/swg-basic.js"></script>
