@@ -1,4 +1,7 @@
 User-agent: *
 Allow: /
+Disallow: /admin.html
+Disallow: /admin
+Disallow: /.netlify/
 
 Sitemap: https://andreexplains.com/sitemap.xml
