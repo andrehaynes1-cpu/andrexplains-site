@@ -198,7 +198,7 @@
   .nav-cta:hover{background:#fff!important}
 
   /* BREADCRUMB */
-  .breadcrumb{max-width:1100px;margin:0 auto;padding:96px 40px 0;display:flex;align-items:center;gap:10px;font-family:var(--font-mono);font-size:11px;color:var(--text3)}
+  .breadcrumb{max-width:1100px;margin:0 auto;padding:96px 40px 0;display:flex;align-items:center;gap:10px;font-family:var(--font-mono);font-size:13px;color:var(--text3)}
   .breadcrumb a{color:var(--text3);text-decoration:none;transition:color .2s}
   .breadcrumb a:hover{color:var(--accent)}
   .breadcrumb span{color:var(--text3)}
@@ -211,7 +211,7 @@
 
   /* ARTICLE HEADER */
   .article-header{margin-bottom:40px}
-  .article-category{font-family:var(--font-mono);font-size:11px;color:var(--accent);text-transform:uppercase;letter-spacing:2px;background:rgba(232,255,0,.07);padding:4px 12px;border:1px solid rgba(232,255,0,.15);display:inline-block;margin-bottom:20px}
+  .article-category{font-family:var(--font-mono);font-size:12px;color:var(--accent);text-transform:uppercase;letter-spacing:2px;background:rgba(232,255,0,.07);padding:4px 12px;border:1px solid rgba(232,255,0,.15);display:inline-block;margin-bottom:20px}
   .article-title{font-family:var(--font-display);font-size:clamp(40px,6vw,72px);letter-spacing:1px;line-height:.95;margin-bottom:24px;color:var(--text)}
   .article-meta{display:flex;align-items:center;flex-wrap:wrap;gap:12px 24px;padding:16px 0;border-top:1px solid var(--border);border-bottom:1px solid var(--border);font-family:var(--font-mono);font-size:13px;color:#aaaaaa}
   .article-meta .by{color:var(--text2)}
@@ -260,7 +260,7 @@
 
   /* KEY TAKEAWAYS */
   .article-body .key-takeaways{background:var(--bg3);border-left:3px solid var(--accent);padding:24px 28px;margin:36px 0;position:relative}
-  .article-body .key-takeaways::before{content:'KEY TAKEAWAYS';position:absolute;top:-1px;left:28px;background:var(--accent);color:#000;font-family:var(--font-mono);font-size:11px;font-weight:700;letter-spacing:2px;padding:4px 12px;transform:translateY(-100%)}
+  .article-body .key-takeaways::before{content:'KEY TAKEAWAYS';position:absolute;top:-1px;left:28px;background:var(--accent);color:#000;font-family:var(--font-mono);font-size:12px;font-weight:700;letter-spacing:2px;padding:4px 12px;transform:translateY(-100%)}
   .article-body .key-takeaways h3{display:none}
   .article-body .key-takeaways ul{list-style:none;display:flex;flex-direction:column;gap:12px}
   .article-body .key-takeaways li{font-size:17px;color:var(--text);display:flex;align-items:flex-start;gap:12px;line-height:1.5}
@@ -268,7 +268,7 @@
 
   /* IN-POST PROMO */
   .in-post-promo{background:linear-gradient(135deg,#0d0d00,#111100);border:1px solid rgba(232,255,0,.2);padding:24px;margin:40px 0}
-  .in-post-promo-label{font-family:var(--font-mono);font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:2px;margin-bottom:16px}
+  .in-post-promo-label{font-family:var(--font-mono);font-size:12px;color:var(--text3);text-transform:uppercase;letter-spacing:2px;margin-bottom:16px}
   .mini-promos{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
   .mini-promo{padding:14px;border:1px solid;text-decoration:none;display:flex;flex-direction:column;gap:6px;transition:all .2s}
   .mini-promo.free{border-color:rgba(0,255,136,.25);background:rgba(0,255,136,.03)}
@@ -278,7 +278,7 @@
   .mini-promo.free:hover{border-color:#00ff88}
   .mini-promo.paid:hover{border-color:var(--orange)}
   .mini-promo.yt:hover{border-color:#ff4444}
-  .mini-badge{font-family:var(--font-mono);font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase}
+  .mini-badge{font-family:var(--font-mono);font-size:12px;font-weight:700;letter-spacing:2px;text-transform:uppercase}
   .mini-promo.free .mini-badge{color:#00ff88}
   .mini-promo.paid .mini-badge{color:var(--orange)}
   .mini-promo.yt .mini-badge{color:#ff4444}
@@ -487,6 +487,10 @@
     .share-btn{font-size:14px}
     .audio-btn{font-size:15px}
   }
+  /* ── CONTENT PROTECTION ── */
+  .article-body,.article-header,.author-bio-card,.related-grid,.yt-cta{-webkit-user-select:none;-moz-user-select:none;-ms-user-select:none;user-select:none}
+  .article-body img,.post-image{-webkit-user-drag:none;-khtml-user-drag:none;-moz-user-drag:none;-o-user-drag:none;user-drag:none;pointer-events:none}
+  @media print{body{display:none !important}body::after{content:'This content is protected. Visit andreexplains.com to read.';display:block;padding:40px;font-size:24px;text-align:center}}
 </style>
 </head>
 <body>
@@ -909,7 +913,7 @@ async function loadPost() {
               ${AUTHOR_PHOTO_HTML}
             </div>
             <div style="font-family:var(--font-display);font-size:22px;letter-spacing:1px;margin-bottom:2px">ANDRE</div>
-            <div style="font-family:var(--font-mono);font-size:11px;color:var(--accent);margin-bottom:12px">@AndreExplains</div>
+            <div style="font-family:var(--font-mono);font-size:13px;color:var(--accent);margin-bottom:12px">@AndreExplains</div>
             <p style="font-size:13px;color:var(--text2);line-height:1.6;margin-bottom:16px">Documenting the YouTube journey from 0 subscribers. No fake guru energy. Just what actually works.</p>
             <a href="${YT_URL}" target="_blank" style="display:block;text-align:center;background:var(--accent);color:#000;font-family:var(--font-display);font-size:16px;letter-spacing:2px;padding:8px;text-decoration:none;transition:background .2s" onmouseover="this.style.background='#fff'" onmouseout="this.style.background='var(--accent)'">SUBSCRIBE ↗</a>
           </div>
@@ -989,6 +993,47 @@ function showMaintenanceModal(service, message) {
   document.body.appendChild(modal);
   modal.addEventListener('click', function(e) { if (e.target === modal) modal.remove(); });
 }
+
+// ═══ CONTENT PROTECTION ═══
+// Disable right-click context menu
+document.addEventListener('contextmenu', function(e) {
+  if (e.target.closest('.article-body, .article-header, .author-bio-card, .related-grid, .yt-cta, .post-image')) {
+    e.preventDefault();
+  }
+});
+
+// Disable keyboard shortcuts for copy, save, print, view source
+document.addEventListener('keydown', function(e) {
+  // Ctrl+C, Ctrl+A, Ctrl+U, Ctrl+S, Ctrl+P, F12
+  if ((e.ctrlKey || e.metaKey) && ['c','a','u','s','p'].indexOf(e.key.toLowerCase()) !== -1) {
+    // Allow copy in input/textarea fields (for admin editing)
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.isContentEditable) return;
+    e.preventDefault();
+  }
+  if (e.key === 'F12') e.preventDefault();
+  // Ctrl+Shift+I (dev tools), Ctrl+Shift+J (console), Ctrl+Shift+C (inspect)
+  if ((e.ctrlKey || e.metaKey) && e.shiftKey && ['i','j','c'].indexOf(e.key.toLowerCase()) !== -1) {
+    e.preventDefault();
+  }
+});
+
+// Disable drag on images and text
+document.addEventListener('dragstart', function(e) {
+  if (e.target.closest('.article-body, .article-header, .post-image')) {
+    e.preventDefault();
+  }
+});
+
+// If someone manages to copy, append copyright notice
+document.addEventListener('copy', function(e) {
+  if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.isContentEditable) return;
+  var selection = window.getSelection().toString();
+  if (selection.length > 20) {
+    e.preventDefault();
+    var copiedText = selection + '\n\n© ' + new Date().getFullYear() + ' AndreExplains.com — All rights reserved.\nRead the original: ' + window.location.href;
+    e.clipboardData.setData('text/plain', copiedText);
+  }
+});
 
 // ═══ LINK CLICK TRACKER ═══
 document.addEventListener('click', function(e) {
